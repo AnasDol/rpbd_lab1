@@ -1,9 +1,4 @@
-#include <windows.h>
-#include <sql.h>
-#include <sqlext.h>
-#include <iostream>
-
-#define ODBC_ERROR_MSG_SIZE 1024
+#include "connection.hpp"
 
 void show_error(SQLHANDLE handle, SQLSMALLINT handle_type) {
     SQLCHAR sql_state[6], error_msg[ODBC_ERROR_MSG_SIZE];
@@ -15,35 +10,118 @@ void show_error(SQLHANDLE handle, SQLSMALLINT handle_type) {
     }
 }
 
-int main() {
-    SQLHENV env;
-    SQLHDBC dbc;
+int connect_to_db(std::string dsn, std::string uid, std::string pwd, SQLHENV *env, SQLHDBC *dbc) {
     SQLRETURN ret;
 
-    const char *dsn = "PostgresDataSource";
-    const char *uid = "rpbd_user";
-    const char *pwd = "1234";
-
-    ret = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &env);
+    ret = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, env);
     if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
-        show_error(env, SQL_HANDLE_ENV);
+        show_error(*env, SQL_HANDLE_ENV);
         return 1;
     }
 
-    ret = SQLSetEnvAttr(env, SQL_ATTR_ODBC_VERSION, (SQLPOINTER) SQL_OV_ODBC3, 0);
+    ret = SQLSetEnvAttr(*env, SQL_ATTR_ODBC_VERSION, (SQLPOINTER) SQL_OV_ODBC3, 0);
     if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
-        show_error(env, SQL_HANDLE_ENV);
+        show_error(*env, SQL_HANDLE_ENV);
         return 1;
     }
 
-    ret = SQLAllocHandle(SQL_HANDLE_DBC, env, &dbc);
+    ret = SQLAllocHandle(SQL_HANDLE_DBC, *env, dbc);
     if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
-        show_error(env, SQL_HANDLE_ENV);
-        SQLFreeHandle(SQL_HANDLE_ENV, env);
+        show_error(*env, SQL_HANDLE_ENV);
+        SQLFreeHandle(SQL_HANDLE_ENV, *env);
         return 1;
     }
 
-    ret = SQLConnect(dbc, (SQLCHAR*)dsn, SQL_NTS, (SQLCHAR*)uid, SQL_NTS, (SQLCHAR*)pwd, SQL_NTS);
+    ret = SQLConnect(*dbc, (SQLCHAR*)dsn.c_str(), SQL_NTS, (SQLCHAR*)uid.c_str(), SQL_NTS, (SQLCHAR*)pwd.c_str(), SQL_NTS);
+    if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
+        show_error(*dbc, SQL_HANDLE_DBC);
+        SQLFreeHandle(SQL_HANDLE_DBC, *dbc);
+        SQLFreeHandle(SQL_HANDLE_ENV, *env);
+        return 1;
+    }
+
+    std::cout << "Connection established." << std::endl;
+
+    return 0;
+}
+
+
+bool already_exists(SQLHDBC dbc, const std::string& table_name) {
+    SQLHSTMT stmt;
+    SQLRETURN ret;
+
+    ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
+    if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
+        show_error(dbc, SQL_HANDLE_DBC);
+        return false;
+    }
+
+    std::string query = "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = '" + table_name + "');";
+    ret = SQLExecDirect(stmt, (SQLCHAR*)query.c_str(), SQL_NTS);
+    if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
+        show_error(stmt, SQL_HANDLE_STMT);
+        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+        return false;
+    }
+
+    SQLINTEGER exists;
+    ret = SQLFetch(stmt);
+    if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
+        show_error(stmt, SQL_HANDLE_STMT);
+        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+        return false;
+    }
+
+    ret = SQLGetData(stmt, 1, SQL_INTEGER, &exists, 0, NULL);
+    if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
+        show_error(stmt, SQL_HANDLE_STMT);
+        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+        return false;
+    }
+
+    SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+    return (exists == 1);
+}
+
+int create_table_if_not_exists(SQLHDBC dbc, std::string table_name, std::string table_args) {
+
+    SQLHSTMT stmt;
+    SQLRETURN ret;
+
+    ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
+    if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
+        show_error(dbc, SQL_HANDLE_DBC);
+        return 1;
+    }
+
+    std::string create_query = "CREATE TABLE IF NOT EXISTS " + table_name + " (" + table_args + ")";
+
+    ret = SQLExecDirect(stmt, (SQLCHAR*)create_query.c_str(), SQL_NTS);
+    if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
+        show_error(stmt, SQL_HANDLE_STMT);
+        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+        return 1;
+    }
+
+    SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+
+    return 0;
+}
+
+int init_tables(SQLHDBC dbc) {
+    if (create_table_if_not_exists(dbc, "breeds", "id serial PRIMARY KEY, value integer") ||
+        create_table_if_not_exists(dbc, "clients", "id serial PRIMARY KEY, last_name text NOT NULL, first_name text NOT NULL, patronymic text, address text") ||
+        create_table_if_not_exists(dbc, "employees", "id serial PRIMARY KEY, last_name text NOT NULL, first_name text NOT NULL, patronymic text, address text, position text, salary money")) {
+            return 1;
+        }
+    return 0;
+}
+
+
+int disconnect_from_db(SQLHENV env, SQLHDBC dbc) {
+    SQLRETURN ret;
+
+    ret = SQLDisconnect(dbc);
     if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
         show_error(dbc, SQL_HANDLE_DBC);
         SQLFreeHandle(SQL_HANDLE_DBC, dbc);
@@ -51,12 +129,81 @@ int main() {
         return 1;
     }
 
-    std::cout << "Connection established." << std::endl;
-
-    SQLDisconnect(dbc);
-
     SQLFreeHandle(SQL_HANDLE_DBC, dbc);
     SQLFreeHandle(SQL_HANDLE_ENV, env);
 
+    std::cout << "Connection closed." << std::endl;
+
+    return 0;
+}
+
+int print_table(SQLHDBC dbc, const std::string &table_name) {
+    SQLHSTMT stmt;
+    SQLRETURN ret;
+    SQLSMALLINT num_columns;
+
+    ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
+    if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
+        show_error(dbc, SQL_HANDLE_DBC);
+        return 1;
+    }
+
+    std::string select_query = "SELECT * FROM " + table_name;
+    ret = SQLExecDirect(stmt, (SQLCHAR *)select_query.c_str(), SQL_NTS);
+    if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
+        show_error(stmt, SQL_HANDLE_STMT);
+        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+        return 1;
+    }
+
+    ret = SQLNumResultCols(stmt, &num_columns);
+    if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
+        show_error(stmt, SQL_HANDLE_STMT);
+        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+        return 1;
+    }
+
+    SQLULEN column_size;
+
+    // Print column names
+    for (SQLUSMALLINT i = 1; i <= num_columns; i++) {
+        SQLCHAR column_name[128];
+        SQLSMALLINT column_name_len;
+        
+        SQLSMALLINT nullable;
+        SQLSMALLINT decimal_digits;
+        SQLSMALLINT data_type;
+
+        ret = SQLDescribeCol(stmt, i, column_name, sizeof(column_name), &column_name_len,
+                              &data_type, &column_size, &decimal_digits, &nullable);
+
+        if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
+            show_error(stmt, SQL_HANDLE_STMT);
+            SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+            return 1;
+        }
+        if (i > 1) std::cout << "\t";
+        std::cout << std::setw(column_size) << column_name;
+    }
+    std::cout << std::endl;
+
+    // Print table data
+    while (SQLFetch(stmt) == SQL_SUCCESS) {
+        for (SQLUSMALLINT i = 1; i <= num_columns; i++) {
+            SQLLEN value_len;
+            SQLCHAR value[128];
+            ret = SQLGetData(stmt, i, SQL_C_CHAR, value, sizeof(value), &value_len);
+            if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
+                show_error(stmt, SQL_HANDLE_STMT);
+                SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+                return 1;
+            }
+            if (i > 1) std::cout << "\t";
+            std::cout << std::setw(column_size) << value;
+        }
+        std::cout << std::endl;
+    }
+
+    SQLFreeHandle(SQL_HANDLE_STMT, stmt);
     return 0;
 }
