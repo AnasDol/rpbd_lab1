@@ -109,11 +109,27 @@ int create_table_if_not_exists(SQLHDBC dbc, std::string table_name, std::string 
 }
 
 int init_tables(SQLHDBC dbc) {
-    if (create_table_if_not_exists(dbc, "breeds", "id serial PRIMARY KEY, value integer") ||
-        create_table_if_not_exists(dbc, "clients", "id serial PRIMARY KEY, last_name text NOT NULL, first_name text NOT NULL, patronymic text, address text") ||
-        create_table_if_not_exists(dbc, "employees", "id serial PRIMARY KEY, last_name text NOT NULL, first_name text NOT NULL, patronymic text, address text, position text, salary money")) {
-            return 1;
-        }
+
+    SQLHSTMT stmt;
+    SQLRETURN ret;
+
+    ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
+    if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
+        show_error(dbc, SQL_HANDLE_DBC);
+        return 1;
+    }
+
+    std::string create_query = "do $$ begin if not exists (select 1 from pg_type where typname = 'gen') then create type gen as enum ('male', 'female'); end if; if not exists (select 1 from pg_type where typname = 'pos') then create type pos as enum ('vet', 'admin', 'cleaner'); end if; end$$; create table if not exists breeds(id serial primary key, name text UNIQUE); create table if not exists clients(id serial primary key, last_name text not null, first_name text not null, patronymic text, address text); create table if not exists employees(id serial primary key, last_name text not null, first_name text not null, patronymic text, address text, position pos, salary money); create table if not exists animals(id serial primary key, name text, age integer check (age > 0), gender gen, breed_id integer references breeds(id), appearance text, client_id integer references clients(id), vet_id integer references employees(id)); create table if not exists pedigree(parent_id integer references animals(id), child_id integer references animals(id)); create table if not exists exhibitions(id serial primary key, name text, address text, date date); create table if not exists participations(id serial primary key, animal_id integer references animals(id), exhibition_id integer references exhibitions(id), reward text);";
+
+    ret = SQLExecDirect(stmt, (SQLCHAR*)create_query.c_str(), SQL_NTS);
+    if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
+        show_error(stmt, SQL_HANDLE_STMT);
+        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+        return 1;
+    }
+
+    SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+
     return 0;
 }
 
