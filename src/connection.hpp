@@ -1,5 +1,5 @@
-#ifndef CONNECTION
-#define CONNECTION
+#ifndef CONNECTION_HPP
+#define CONNECTION_HPP
 
 #include <windows.h>
 #include <sql.h>
@@ -25,4 +25,5 @@ int disconnect_from_db(SQLHENV env, SQLHDBC dbc);
 
 int print_table(SQLHDBC dbc, const std::string &table_name) ;
 
-#endif
+
+#endif // CONNECTION_HPP

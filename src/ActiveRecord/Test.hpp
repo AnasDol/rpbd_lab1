@@ -1,5 +1,5 @@
-#ifndef TEST
-#define TEST
+#ifndef TEST_HPP
+#define TEST_HPP
 
 #include <string>
 #include <windows.h>
@@ -26,4 +26,5 @@ public:
     static int last_insert_id(SQLHDBC dbc);
 };
 
-#endif
+
+#endif // TEST_HPP
