@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include "ActiveRecord/Breed.hpp"
+#include "ActiveRecord/Client.hpp"
 
 enum class Table {BREEDS, CLIENTS, EMPLOYEES, ANIMALS, EXHIBITIONS, PEDIGREE, PARTICIPATIONS, REQUESTS};
 
@@ -47,6 +48,7 @@ enum class Table {BREEDS, CLIENTS, EMPLOYEES, ANIMALS, EXHIBITIONS, PEDIGREE, PA
 int option_add_new_animal(SQLHDBC dbc);
 
 int option_add_new_breed(SQLHDBC dbc); // возвращает id или -1
+int option_add_new_client(SQLHDBC dbc);
 
 void option_insert_new_record(SQLHDBC dbc);
 void option_update_record(SQLHDBC dbc);

@@ -5,6 +5,7 @@
 #include "ActiveRecord/Test.hpp"
 #include "ActiveRecord/Breed.hpp"
 #include "menu.hpp"
+#include "ActiveRecord/Client.hpp"
 
 int main() {
 
@@ -58,7 +59,15 @@ int main() {
 
     //print_table(dbc, "breeds");
 
-    option_add_new_animal(dbc);
+    //option_add_new_animal(dbc);
+
+    Client client;
+    client.setLastName("Spanch");
+    client.setFirstName("Bob");
+    client.setAddress("in a pineapple under the sea");
+
+    client.insert(dbc);
+
 
 
     disconnect_from_db(env, dbc);
