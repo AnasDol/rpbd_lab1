@@ -198,13 +198,15 @@ int print_table(SQLHDBC dbc, const std::string &table_name) {
             SQLFreeHandle(SQL_HANDLE_STMT, stmt);
             return 1;
         }
-        if (i > 1) std::cout << "\t";
-        std::cout << std::setw(column_size) << column_name;
+        std::cout << "\t";
+        std::cout << /*std::setw(column_size) <<*/ column_name;
     }
     std::cout << std::endl;
 
-    // Print table data
+    //Print table data
+    int num = 0;
     while (SQLFetch(stmt) == SQL_SUCCESS) {
+        num++;
         for (SQLUSMALLINT i = 1; i <= num_columns; i++) {
             SQLLEN value_len;
             SQLCHAR value[128];
@@ -214,8 +216,9 @@ int print_table(SQLHDBC dbc, const std::string &table_name) {
                 SQLFreeHandle(SQL_HANDLE_STMT, stmt);
                 return 1;
             }
-            if (i > 1) std::cout << "\t";
-            std::cout << std::setw(column_size) << value;
+            if (i == 1) std::cout << num << ".";
+            std::cout << "\t";
+            std::cout << /*std::setw(column_size) <<*/ value;
         }
         std::cout << std::endl;
     }

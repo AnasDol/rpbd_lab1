@@ -4,6 +4,7 @@
 #include "connection.hpp"
 #include "ActiveRecord/Test.hpp"
 #include "ActiveRecord/Breed.hpp"
+#include "menu.hpp"
 
 int main() {
 
@@ -43,17 +44,21 @@ int main() {
     // new_breed.insert(dbc);
     // std::cout<<"new_breed: id = " + std::to_string(new_breed.id) + ", name = " + new_breed.name + "\n";
 
-    Breed rem_breed;
+    //Breed rem_breed;
     //rem_breed = Breed::find_by_id(dbc, 1);
    
 
-    try {
-        rem_breed.remove(dbc);
-    } catch (std::runtime_error const& e) {
-        std::cout << e.what() << ".\n";
-    }
+    // try {
+    //     rem_breed.remove(dbc);
+    // } catch (std::runtime_error const& e) {
+    //     std::cout << e.what() << ".\n";
+    // }
 
     //std::cout<<"new_breed: id = " + std::to_string(rem_breed.id) + ", name = " + rem_breed.name + "\n";
+
+    //print_table(dbc, "breeds");
+
+    option_add_new_animal(dbc);
 
 
     disconnect_from_db(env, dbc);

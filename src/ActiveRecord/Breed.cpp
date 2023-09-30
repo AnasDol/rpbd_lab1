@@ -163,3 +163,81 @@ Breed Breed::find_by_id(SQLHDBC dbc, int id) {
     return breed;
 
 }
+
+int Breed::get_record_num(SQLHDBC dbc) {
+    SQLHSTMT stmt;
+    SQLRETURN res = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
+    if (res != SQL_SUCCESS) {
+        throw std::runtime_error("Failed to allocate statement handle");
+    }
+
+    std::string query = "SELECT COUNT(*) FROM breeds";
+    res = SQLPrepare(stmt, (SQLCHAR *)query.c_str(), SQL_NTS);
+    if (res != SQL_SUCCESS) {
+        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+        throw std::runtime_error("Failed to prepare SQL statement");
+    }
+
+    res = SQLExecute(stmt);
+    if (res != SQL_SUCCESS) {
+        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+        throw std::runtime_error("Failed to execute SQL statement");
+    }
+
+    SQLINTEGER numRecords = 0; 
+    SQLLEN numLen = 0;
+    res = SQLBindCol(stmt, 1, SQL_C_LONG, &numRecords, 0, &numLen); 
+    if (res != SQL_SUCCESS) {
+        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+        throw std::runtime_error("Failed to bind column for record count");
+    }
+
+    res = SQLFetch(stmt);
+    if(res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO) {
+        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+        throw std::runtime_error("Failed to fetch record count");
+    }
+
+    SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+    
+    return numRecords;
+}
+
+int Breed::get_last_inserted_id(SQLHDBC dbc) {
+    SQLHSTMT stmt;
+    SQLRETURN res = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
+    if (res != SQL_SUCCESS) {
+      throw std::runtime_error("Failed to allocate statement handle");
+    }
+
+    std::string query = "SELECT max(id) FROM breeds";
+    res = SQLPrepare(stmt, (SQLCHAR *)query.c_str(), SQL_NTS);
+    if (res != SQL_SUCCESS) {
+      SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+      throw std::runtime_error("Failed to prepare SQL statement");
+    }
+
+    res = SQLExecute(stmt);
+    if (res != SQL_SUCCESS) {
+      SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+      throw std::runtime_error("Failed to execute SQL statement");
+    }
+
+    SQLINTEGER last_id = 0;
+    SQLLEN len = 0;
+    res = SQLBindCol(stmt, 1, SQL_C_LONG, &last_id, 0, &len); 
+    if (res != SQL_SUCCESS) {
+      SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+      throw std::runtime_error("Failed to bind column for id");
+    }
+    
+    res = SQLFetch(stmt);
+    if (res == SQL_SUCCESS) {
+        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+        return last_id;
+    }
+    else {
+        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+        throw std::runtime_error("Failed to fetch max ID");
+    }
+}
