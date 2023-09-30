@@ -41,8 +41,6 @@ public:
 
     static int get_record_num(SQLHDBC dbc);
 
-    static int get_last_inserted_id(SQLHDBC dbc);
-
 //private:
     int id;
     std::string name;

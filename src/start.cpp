@@ -61,12 +61,19 @@ int main() {
 
     //option_add_new_animal(dbc);
 
-    Client client;
-    client.setLastName("Spanch");
-    client.setFirstName("Bob");
-    client.setAddress("in a pineapple under the sea");
+    // Client client;
+    // client.setLastName("Spanch");
+    // client.setFirstName("Bob");
+    // client.setAddress("in a pineapple under the sea");
 
-    client.insert(dbc);
+    // client.insert(dbc);
+
+    Client client = Client::find_by_id(dbc, 2);
+    client.setPatronymic("");
+
+    client.update(dbc);
+
+    //std::cout << client.getLastName() << " " << client.getFirstName() << client.getPatronymic() << client.getAddress();
 
 
 

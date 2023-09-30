@@ -46,7 +46,7 @@ int option_add_new_animal(SQLHDBC dbc) {
 
     std::cout << "Select breed:\n";
     print_table(dbc, "breeds");
-    std::cout << /*Breed::get_record_num(dbc)+1*/Breed::get_last_inserted_id(dbc)+1 << ". Add new breed\n> ";
+    std::cout << /*Breed::get_record_num(dbc)+1*/get_last_inserted_id(dbc, "breeds")+1 << ". Add new breed\n> ";
     std::cin >> breed_id; // позднее переделать на логический номер
 
     if (!std::cin.good()) {
@@ -61,7 +61,7 @@ int option_add_new_animal(SQLHDBC dbc) {
         return -1;
     }
 
-    if (breed_id == /*Breed::get_record_num(dbc)+1*/Breed::get_last_inserted_id(dbc)+1) {
+    if (breed_id == /*Breed::get_record_num(dbc)+1*/get_last_inserted_id(dbc, "breeds")+1) {
         breed_id = option_add_new_breed(dbc);
     }
 
@@ -83,7 +83,7 @@ int option_add_new_animal(SQLHDBC dbc) {
         return -1;
     }
 
-    if (client_id == /*Breed::get_record_num(dbc)+1*/Client::get_last_inserted_id(dbc)+1) {
+    if (client_id == /*Breed::get_record_num(dbc)+1*/get_last_inserted_id(dbc, "clients")+1) {
         client_id = option_add_new_client(dbc);
     }
 
