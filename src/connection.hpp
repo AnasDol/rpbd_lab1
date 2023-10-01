@@ -34,5 +34,7 @@ std::list<std::string> get_enum_values(SQLHDBC dbc, const std::string &enum_type
 
 std::list<std::string> get_values(SQLHDBC dbc, const std::string &table_name);
 
+int countRecords(SQLHDBC dbc, const std::string& tableName, const std::string& attributeName, const std::string& attributeValue);
+
 
 #endif // CONNECTION_HPP

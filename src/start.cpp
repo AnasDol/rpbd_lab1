@@ -1,11 +1,11 @@
-#include <iostream>
-#include "Windows.h"
-#include <odbcinst.h>
-#include "connection.hpp"
-#include "ActiveRecord/Test.hpp"
 #include "ActiveRecord/Breed.hpp"
-#include "menu.hpp"
 #include "ActiveRecord/Client.hpp"
+#include "ActiveRecord/Test.hpp"
+#include "Windows.h"
+#include "connection.hpp"
+#include "menu.hpp"
+#include <iostream>
+#include <odbcinst.h>
 
 int main() {
 
@@ -28,26 +28,29 @@ int main() {
         return 1;
     }
 
-    //print_table(dbc, "animals");
+    // print_table(dbc, "animals");
 
     /*Test record = Test::find_by_id(dbc, 1);
-    std::cout<< "record: id = " + std::to_string(record.id_) + ", value = " + std::to_string(record.value_) + "\n";
+    std::cout<< "record: id = " + std::to_string(record.id_) + ", value = " +
+    std::to_string(record.value_) + "\n";
 
     record.value_ = 5;
     record.update(dbc);*/
 
     // Breed record = Breed::find_by_id(dbc, 1);
-    // std::cout<< "record: id = " + std::to_string(record.id) + ", name = " + record.name + "\n";
+    // std::cout<< "record: id = " + std::to_string(record.id) + ", name = " +
+    // record.name + "\n";
 
     // Breed new_breed;
     // new_breed.setName("Pony");
 
     // new_breed.insert(dbc);
-    // std::cout<<"new_breed: id = " + std::to_string(new_breed.id) + ", name = " + new_breed.name + "\n";
+    // std::cout<<"new_breed: id = " + std::to_string(new_breed.id) + ", name =
+    // "
+    // + new_breed.name + "\n";
 
-    //Breed rem_breed;
-    //rem_breed = Breed::find_by_id(dbc, 1);
-   
+    // Breed rem_breed;
+    // rem_breed = Breed::find_by_id(dbc, 1);
 
     // try {
     //     rem_breed.remove(dbc);
@@ -55,11 +58,13 @@ int main() {
     //     std::cout << e.what() << ".\n";
     // }
 
-    //std::cout<<"new_breed: id = " + std::to_string(rem_breed.id) + ", name = " + rem_breed.name + "\n";
+    // std::cout<<"new_breed: id = " + std::to_string(rem_breed.id) + ", name =
+    // "
+    // + rem_breed.name + "\n";
 
-    //print_table(dbc, "breeds");
+    // print_table(dbc, "breeds");
 
-    //option_add_new_animal(dbc);
+    // option_add_new_animal(dbc);
 
     // Client client;
     // client.setLastName("Spanch");
@@ -73,15 +78,21 @@ int main() {
 
     // client.update(dbc);
 
-    //std::cout << client.getLastName() << " " << client.getFirstName() << client.getPatronymic() << client.getAddress();
+    // std::cout << client.getLastName() << " " << client.getFirstName() <<
+    // client.getPatronymic() << client.getAddress();
 
-    //option_add_new_employee(dbc);
+    // option_add_new_employee(dbc);
 
-    //Position::display_and_return_all(dbc);
+    // Position::display_and_return_all(dbc);
 
-    //Client::display_and_return_all(dbc);
+    // Client::display_and_return_all(dbc);
 
+    
     option_add_new_animal(dbc);
+
+    //option_add_new_vet(dbc);
+
+    //Employee::display_and_return_vets(dbc);
 
 
 
@@ -89,4 +100,3 @@ int main() {
 
     return 0;
 }
-

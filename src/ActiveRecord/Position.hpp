@@ -39,6 +39,7 @@ public:
     void remove(SQLHDBC dbc);
 
     static Position find_by_id(SQLHDBC dbc, int id);
+    static Position find(SQLHDBC dbc, std::string attribute, std::string value);
 
     static std::map<int, int> display_and_return_all(SQLHDBC dbc);
 

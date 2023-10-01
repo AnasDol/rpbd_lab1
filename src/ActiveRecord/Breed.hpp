@@ -1,35 +1,30 @@
 #ifndef BREED_HPP
 #define BREED_HPP
 
-#include <string>
-#include <windows.h>
+#include "../connection.hpp"
+#include <iomanip>
+#include <iostream>
+#include <map>
 #include <sql.h>
 #include <sqlext.h>
-#include <iostream>
-#include <iomanip>
-#include <map>
-#include "../connection.hpp"
+#include <string>
+#include <windows.h>
 
 class Breed {
 
-public:
+  public:
     Breed() : id(0), name("") {}
 
-    Breed(int i, const std::string& n) : id(i), name(n) {}
+    Breed(int i, const std::string &n) : id(i), name(n) {}
 
-    int getId() const {
-        return id;
-    }
+    int getId() const { return id; }
 
-    std::string getName() const {
-        return name;
-    }
+    std::string getName() const { return name; }
 
-    void setName(const std::string& n) {
-        name = n;
-    }
+    void setName(const std::string &n) { name = n; }
 
-    /// @brief добавляет в базу новую строчку с текущим name, в значение поля id записывается id новой строки
+    /// @brief добавляет в базу новую строчку с текущим name, в значение поля id
+    /// записывается id новой строки
     void insert(SQLHDBC dbc);
 
     /// @brief изменяет значение name в строчке с текущим id
@@ -42,11 +37,9 @@ public:
 
     static std::map<int, int> display_and_return_all(SQLHDBC dbc);
 
-private:
+  private:
     int id;
     std::string name;
-
 };
-
 
 #endif // BREED_HPP

@@ -7,6 +7,7 @@
 #include <sqlext.h>
 #include <iostream>
 #include <iomanip>
+#include <map>
 #include "../connection.hpp"
 
 class Employee {
@@ -28,7 +29,10 @@ public:
 
     static Employee find_by_id(SQLHDBC dbc, int id);
 
-        int getId() const {
+    static std::map<int, int> display_and_return_all(SQLHDBC dbc);
+    static std::map<int, int> display_and_return_vets(SQLHDBC dbc);
+
+    int getId() const {
         return id;
     }
 

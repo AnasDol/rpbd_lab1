@@ -390,3 +390,57 @@ std::list<std::string> get_values(SQLHDBC dbc, const std::string &table_name) {
     SQLFreeHandle(SQL_HANDLE_STMT, stmt);
     return rows;
 }
+
+int countRecords(SQLHDBC dbc, const std::string& tableName, const std::string& attributeName, const std::string& attributeValue) {
+    SQLRETURN ret;  // Переменная для хранения возвращаемого значения функций ODBC
+    SQLHSTMT stmt;  // Объект ODBC для выполнения SQL-запросов
+
+    ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);  // Выделение памяти для объекта ODBC
+    if (ret != SQL_SUCCESS) {
+        std::cerr << "Failed to allocate statement handle." << std::endl;
+        return -1;  // Возвращаем -1 в случае ошибки
+    }
+
+    // Создание SQL-запроса с использованием переданных параметров
+    std::string query = "SELECT COUNT(*) FROM " + tableName + " WHERE " + attributeName + " = ?";
+    ret = SQLPrepare(stmt, (SQLCHAR*)(query.data()), SQL_NTS);  // Подготовка SQL-запроса
+    if (ret != SQL_SUCCESS) {
+        std::cerr << "Failed to prepare SQL statement." << std::endl;
+        SQLFreeHandle(SQL_HANDLE_STMT, stmt);  // Освобождаем выделенную память перед выходом
+        return -1;
+    }
+
+    // Привязка значения атрибута к параметру в SQL-запросе
+    ret = SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, attributeValue.size(), 0,
+                           (SQLCHAR*)(attributeValue.data()), attributeValue.size(), nullptr);
+    if (ret != SQL_SUCCESS) {
+        std::cerr << "Failed to bind parameter." << std::endl;
+        SQLFreeHandle(SQL_HANDLE_STMT, stmt);  // Освобождаем выделенную память перед выходом
+        return -1;
+    }
+
+    // Выполнение SQL-запроса
+    ret = SQLExecute(stmt);
+    if (ret != SQL_SUCCESS) {
+        std::cerr << "Failed to execute SQL statement." << std::endl;
+        SQLFreeHandle(SQL_HANDLE_STMT, stmt);  // Освобождаем выделенную память перед выходом
+        return -1;
+    }
+
+    // Получение результата запроса
+    SQLLEN count;
+    ret = SQLFetch(stmt);
+    if (ret == SQL_SUCCESS || ret == SQL_SUCCESS_WITH_INFO) {
+        ret = SQLGetData(stmt, 1, SQL_C_LONG, &count, sizeof(count), nullptr);  // Получаем значение числа записей
+        if (ret != SQL_SUCCESS) {
+            std::cerr << "Failed to retrieve data." << std::endl;
+            count = -1;
+        }
+    } else {
+        std::cerr << "Failed to fetch data." << std::endl;
+        count = -1;
+    }
+
+    SQLFreeHandle(SQL_HANDLE_STMT, stmt);  // Освобождаем выделенную память
+    return count;
+}
