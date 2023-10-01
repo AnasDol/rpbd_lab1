@@ -1,5 +1,5 @@
-#ifndef CLIENT_HPP
-#define CLIENT_HPP
+#ifndef EMPLOYEE_HPP
+#define EMPLOYEE_HPP
 
 #include <string>
 #include <windows.h>
@@ -7,16 +7,15 @@
 #include <sqlext.h>
 #include <iostream>
 #include <iomanip>
-#include <map>
 #include "../connection.hpp"
 
-class Client {
+class Employee {
 
 public:
-    Client() : id(0), last_name(""), first_name(""), patronymic(""), address("") {}
+    Employee() : id(0), last_name(""), first_name(""), patronymic(""), address(""), position_id(0), salary(0) {}
 
-    Client(int i, const std::string& ln, const std::string& fn, const std::string& p, const std::string& a) 
-        : id(i), last_name(ln), first_name(fn), patronymic(p), address(a) {}
+    Employee(int i, const std::string& ln, const std::string& fn, const std::string& p, const std::string& a, int pos, int s) 
+        : id(i), last_name(ln), first_name(fn), patronymic(p), address(a), position_id(pos), salary(s) {}
 
     /// @brief добавляет в базу новую строчку с текущим name, в значение поля id записывается id новой строки
     void insert(SQLHDBC dbc);
@@ -27,10 +26,9 @@ public:
     /// @brief удаляет строчку с текущим id
     void remove(SQLHDBC dbc);
 
-    static Client find_by_id(SQLHDBC dbc, int id);
-    static std::map<int, int> display_and_return_all(SQLHDBC dbc);
+    static Employee find_by_id(SQLHDBC dbc, int id);
 
-    int getId() const {
+        int getId() const {
         return id;
     }
 
@@ -66,14 +64,32 @@ public:
         address = a;
     }
 
+    int getPositionId() const {
+        return position_id;
+    }
+
+    void setPositionId(int pos_id) {
+        position_id = pos_id;
+    }
+
+    int getSalary() const {
+        return salary;
+    }
+
+    void setSalary(int s) {
+        salary = s;
+    }
+
 private:
     int id;
     std::string last_name;
     std::string first_name;
     std::string patronymic;
     std::string address;
+    int position_id;
+    int salary;
 
 };
 
 
-#endif // CLIENT_HPP
+#endif // EMPLOYEE_HPP

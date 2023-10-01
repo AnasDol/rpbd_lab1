@@ -6,6 +6,7 @@
 #include <sqlext.h>
 #include <iostream>
 #include <iomanip>
+#include <list>
 
 #define ODBC_ERROR_MSG_SIZE 1024
 
@@ -26,6 +27,12 @@ int disconnect_from_db(SQLHENV env, SQLHDBC dbc);
 int print_table(SQLHDBC dbc, const std::string &table_name) ;
 
 int get_last_inserted_id(SQLHDBC dbc, const std::string& table_name);
+
+int get_record_num(SQLHDBC dbc, const std::string& table_name);
+
+std::list<std::string> get_enum_values(SQLHDBC dbc, const std::string &enum_type_name);
+
+std::list<std::string> get_values(SQLHDBC dbc, const std::string &table_name);
 
 
 #endif // CONNECTION_HPP

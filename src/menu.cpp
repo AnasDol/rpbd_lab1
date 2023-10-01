@@ -8,12 +8,11 @@ int option_add_new_animal(SQLHDBC dbc) {
     int breed_id;
     std::string appearance;
     int client_id;
-    //int vet_id;
+    int vet_id = 1; // ВРЕМЕННО!!!!!
 
     int option;
 
     std::cout << "Name: ";
-    //std::cin >> name;
     getline(std::cin, name);
 
     std::cout << "Age: ";
@@ -31,69 +30,83 @@ int option_add_new_animal(SQLHDBC dbc) {
         std::cout << "Wrong input.\n";
         return -1;
     }
-    switch (option)
-    {
-    case 1:
-        gender = "male";
-        break;
-    case 2:
-        gender = "female";
-        break;
-    
-    default:
-        break;
-    }
+
+    gender = (option == 1) ? "male" : "female";
 
     std::cout << "Select breed:\n";
-    print_table(dbc, "breeds");
-    std::cout << /*Breed::get_record_num(dbc)+1*/get_last_inserted_id(dbc, "breeds")+1 << ". Add new breed\n> ";
-    std::cin >> breed_id; // позднее переделать на логический номер
+    std::map<int, int> breed_map = Breed::display_and_return_all(dbc);
+    std::cout << "or\n" << (int)(breed_map.size())+1 << ". Add new breed\n> ";
+
+    int number;
+    std::cin >> number;
 
     if (!std::cin.good()) {
         std::cout << "Wrong input.\n";
         return -1;
     }
-
-    try {
-        Breed breed = Breed::find_by_id(dbc, breed_id);
-    } catch (std::runtime_error const& e) {
+    
+    // ключ найден
+    if (breed_map.find(number) != breed_map.end()) {
+        breed_id = breed_map[number];
+    }
+    else if (number == (int)(breed_map.size())+1) {
+        breed_id = option_add_new_breed(dbc);
+    }
+    else {
         std::cout << "Wrong input.\n";
         return -1;
-    }
-
-    if (breed_id == /*Breed::get_record_num(dbc)+1*/get_last_inserted_id(dbc, "breeds")+1) {
-        breed_id = option_add_new_breed(dbc);
     }
 
     std::cout << "Appearance: ";
     getline(std::cin, appearance);
 
     std::cout << "Select client:\n";
-    print_table(dbc, "clients");
-    std::cin >> client_id;
+    std::map<int, int> client_map = Client::display_and_return_all(dbc);
+    std::cout << "or\n" << (int)(client_map.size())+1 << ". Add new client\n> ";
+
+    std::cin >> number;
+
     if (!std::cin.good()) {
         std::cout << "Wrong input.\n";
         return -1;
     }
-
-    try {
-        Client client = Client::find_by_id(dbc, client_id);
-    } catch (std::runtime_error const& e) {
+    
+    // ключ найден
+    if (client_map.find(number) != client_map.end()) {
+        client_id = client_map[number];
+    }
+    else if (number == (int)(client_map.size())+1) {
+        client_id = option_add_new_client(dbc);
+    }
+    else {
         std::cout << "Wrong input.\n";
         return -1;
     }
 
-    if (client_id == /*Breed::get_record_num(dbc)+1*/get_last_inserted_id(dbc, "clients")+1) {
-        client_id = option_add_new_client(dbc);
+
+
+
+
+    // ... (родословная)
+
+    Animal new_record;
+    new_record.setName(name);
+    new_record.setAge(age);
+    new_record.setGender(gender);
+    new_record.setBreedId(breed_id);
+    new_record.setAppearance(appearance);
+    new_record.setClientId(client_id);
+    new_record.setVetId(vet_id);
+
+    try {
+        new_record.insert(dbc);
+        std::cout << "New entry added to animals.\n";
+    } catch (std::runtime_error const& e) {
+        std::cout << "Failed to add new entry to animals.\n";
+        return -1;
     }
 
-
-
-
-
-    // ...
-
-    return 0; // будет возвращаться id
+    return new_record.getId();
 
 }
 
@@ -127,15 +140,19 @@ int option_add_new_client(SQLHDBC dbc) {
     std::string address;
 
     std::cout << "Client last name: ";
+    std::cin.clear();
     getline(std::cin, last_name);
 
     std::cout << "Client first name: ";
+    std::cin.clear();
     getline(std::cin, first_name);
 
     std::cout << "Client patronymic: ";
+    std::cin.clear();
     getline(std::cin, patronymic);
 
     std::cout << "Client address: ";
+    std::cin.clear();
     getline(std::cin, address);
 
     Client new_record;
@@ -156,61 +173,101 @@ int option_add_new_client(SQLHDBC dbc) {
 
 }
 
-void option_insert_new_record(SQLHDBC dbc) {
+int option_add_new_employee(SQLHDBC dbc) {
 
-    std::cout << "Select table:\n";
-    print_table_list();
+    std::string last_name;
+    std::string first_name;
+    std::string patronymic;
+    std::string address;
+    int position_id;
+    int salary;
 
-    int option;
-    std::cin >> option;
-    switch (option)
-    {
-    case 1:
-    {
-        std::cout << "Name: ";
-        std::string name;
-        std::cin >> name;
-        Breed new_record;
-        new_record.setName(name);
-        new_record.insert(dbc);
+    std::cout << "Employee last name: ";
+    getline(std::cin, last_name);
 
-    }  
-        break;
-    
-    default:
-        std::cout << "Wrong input!\n";
-        break;
+    std::cout << "Employee first name: ";
+    getline(std::cin, first_name);
+
+    std::cout << "Employee patronymic: ";
+    getline(std::cin, patronymic);
+
+    std::cout << "Employee address: ";
+    getline(std::cin, address);
+
+    std::cout << "Select position:\n";
+    std::map<int, int> positions = Position::display_and_return_all(dbc);
+    std::cout << "or\n" << (int)(positions.size())+1 << ". Add new position\n> ";
+
+    int number;
+    std::cin >> number;
+
+    if (!std::cin.good()) {
+        std::cout << "Wrong input.\n";
+        return -1;
     }
+    
+    // ключ найден
+    if (positions.find(number) != positions.end()) {
+        position_id = positions[number];
+    }
+    else if (number == (int)(positions.size())+1) {
+        position_id = option_add_new_position(dbc);
+    }
+    else {
+        std::cout << "Wrong input.\n";
+        return -1;
+    }
+
+    std::cout << "Salary: ";
+    std::cin >> salary;
+
+    if (!std::cin.good() || salary < 0) {
+        std::cout << "Wrong input.\n";
+        return -1;
+    }
+
+    
+    Employee new_record;
+    new_record.setLastName(last_name);
+    new_record.setFirstName(first_name);
+    new_record.setPatronymic(patronymic);
+    new_record.setAddress(address);
+    new_record.setPositionId(position_id);
+    new_record.setSalary(salary);
+
+    try {
+        new_record.insert(dbc);
+        std::cout << "New entry added to employees.\n";
+    } catch (std::runtime_error const& e) {
+        std::cout << "Failed to add new entry to employees.\n";
+        return -1;
+    }
+
+    return new_record.getId();
 
 }
 
-// void option_update_record(SQLHDBC dbc) {
+int option_add_new_position(SQLHDBC dbc) {
 
-//     std::cout << "Select table:\n";
-//     print_table_list();
+    std::string name;
 
-//     Table option;
-//     std::cin >> option;
-//     switch (option)
-//     {
-//     case Table::BREEDS:
-//     {
-//         std::cout << "Input row number: ";
-//         int number;
-//         std::cin >> number;
+    std::cout << "Position name: ";
+    std::cin >> name;
 
-//         std::cout << "Select parameter to update: \n";
-//         //print_parameter_list(option);
+    Position new_record;
+    new_record.setName(name);
 
-//     }  
-//         break;
-    
-//     default:
-//         std::cout << "Wrong input!\n";
-//         break;
-//     }
+    try {
+        new_record.insert(dbc);
+        std::cout << "New entry added to positions.\n";
+    } catch (std::runtime_error const& e) {
+        std::cout << "Failed to add new entry to positions.\n";
+        return -1;
+    }
 
-// }
+    return new_record.getId();
+
+}
 
 
 void print_table_list() {

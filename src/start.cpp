@@ -68,12 +68,20 @@ int main() {
 
     // client.insert(dbc);
 
-    Client client = Client::find_by_id(dbc, 2);
-    client.setPatronymic("");
+    // Client client = Client::find_by_id(dbc, 2);
+    // client.setPatronymic("");
 
-    client.update(dbc);
+    // client.update(dbc);
 
     //std::cout << client.getLastName() << " " << client.getFirstName() << client.getPatronymic() << client.getAddress();
+
+    //option_add_new_employee(dbc);
+
+    //Position::display_and_return_all(dbc);
+
+    //Client::display_and_return_all(dbc);
+
+    option_add_new_animal(dbc);
 
 
 

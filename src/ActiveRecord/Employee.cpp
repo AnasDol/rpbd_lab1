@@ -1,6 +1,6 @@
-#include "Client.hpp"
+#include "Employee.hpp"
 
-void Client::insert(SQLHDBC dbc) {
+void Employee::insert(SQLHDBC dbc) {
 
     SQLHSTMT stmt;
     SQLRETURN res = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
@@ -8,7 +8,7 @@ void Client::insert(SQLHDBC dbc) {
       throw std::runtime_error("Failed to allocate statement handle");
     }
 
-    std::string query = "INSERT INTO clients (last_name, first_name, patronymic, address) VALUES (?, ?, ?, ?) RETURNING id";
+    std::string query = "INSERT INTO employees (last_name, first_name, patronymic, address, position_id, salary) VALUES (?, ?, ?, ?, ?, ?) RETURNING id";
     res = SQLPrepare(stmt, (SQLCHAR *)query.c_str(), SQL_NTS);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
@@ -41,6 +41,18 @@ void Client::insert(SQLHDBC dbc) {
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
       throw std::runtime_error("Failed to bind parameter for address");
+    }
+
+    res = SQLBindParameter(stmt, 5, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &position_id, 0, nullptr);
+    if (res != SQL_SUCCESS) {
+      SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+      throw std::runtime_error("Failed to bind parameter for position_id");
+    }
+
+    res = SQLBindParameter(stmt, 6, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &salary, 0, nullptr);
+    if (res != SQL_SUCCESS) {
+      SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+      throw std::runtime_error("Failed to bind parameter for salary");
     }
 
     res = SQLExecute(stmt);
@@ -64,7 +76,7 @@ void Client::insert(SQLHDBC dbc) {
     SQLFreeHandle(SQL_HANDLE_STMT, stmt);
 }
 
-void Client::update(SQLHDBC dbc) {
+void Employee::update(SQLHDBC dbc) {
 
     SQLHSTMT stmt;
     SQLRETURN res = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
@@ -72,7 +84,7 @@ void Client::update(SQLHDBC dbc) {
       throw std::runtime_error("Failed to allocate statement handle");
     }
 
-    std::string query = "UPDATE clients SET last_name = ?, first_name = ?, patronymic = ?, address = ? WHERE id = ?";
+    std::string query = "UPDATE employees SET last_name = ?, first_name = ?, patronymic = ?, address = ?, position_id = ?, salary = ? WHERE id = ?";
     res = SQLPrepare(stmt, (SQLCHAR *)query.c_str(), SQL_NTS);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
@@ -107,7 +119,19 @@ void Client::update(SQLHDBC dbc) {
       throw std::runtime_error("Failed to bind parameter for address");
     }
 
-    res = SQLBindParameter(stmt, 5, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &id, 0, nullptr);
+    res = SQLBindParameter(stmt, 5, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &position_id, 0, nullptr);
+    if (res != SQL_SUCCESS) {
+      SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+      throw std::runtime_error("Failed to bind parameter for position_id");
+    }
+
+    res = SQLBindParameter(stmt, 6, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &salary, 0, nullptr);
+    if (res != SQL_SUCCESS) {
+      SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+      throw std::runtime_error("Failed to bind parameter for salary");
+    }
+
+    res = SQLBindParameter(stmt, 7, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &id, 0, nullptr);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
       throw std::runtime_error("Failed to bind parameter for id");
@@ -123,14 +147,14 @@ void Client::update(SQLHDBC dbc) {
 
 }
 
-void Client::remove(SQLHDBC dbc) {
+void Employee::remove(SQLHDBC dbc) {
     SQLHSTMT stmt;
     SQLRETURN res = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
     if (res != SQL_SUCCESS) {
       throw std::runtime_error("Failed to allocate statement handle");
     }
 
-    std::string query = "DELETE FROM clients WHERE id = ?";
+    std::string query = "DELETE FROM employees WHERE id = ?";
     res = SQLPrepare(stmt, (SQLCHAR *)query.c_str(), SQL_NTS);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
@@ -152,7 +176,7 @@ void Client::remove(SQLHDBC dbc) {
     SQLFreeHandle(SQL_HANDLE_STMT, stmt);
   }
 
-Client Client::find_by_id(SQLHDBC dbc, int id) {
+Employee Employee::find_by_id(SQLHDBC dbc, int id) {
     
     SQLHSTMT stmt;
     SQLRETURN res = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
@@ -160,7 +184,7 @@ Client Client::find_by_id(SQLHDBC dbc, int id) {
       throw std::runtime_error("Failed to allocate statement handle");
     }
 
-    std::string query = "SELECT * FROM clients WHERE id = ?";
+    std::string query = "SELECT * FROM employees WHERE id = ?";
 
     res = SQLPrepare(stmt, (SQLCHAR *)query.c_str(), SQL_NTS);
     if (res != SQL_SUCCESS) {
@@ -180,8 +204,8 @@ Client Client::find_by_id(SQLHDBC dbc, int id) {
       throw std::runtime_error("Failed to execute SQL statement");
     }
 
-    Client client;
-    res = SQLBindCol(stmt, 1, SQL_C_LONG, &client.id, 0, nullptr);
+    Employee employee;
+    res = SQLBindCol(stmt, 1, SQL_C_LONG, &employee.id, 0, nullptr);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
       throw std::runtime_error("Failed to bind column for id");
@@ -217,106 +241,31 @@ Client Client::find_by_id(SQLHDBC dbc, int id) {
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
       throw std::runtime_error("Failed to bind column for address");
+    }
+
+    res = SQLBindCol(stmt, 6, SQL_C_LONG, &employee.position_id, 0, nullptr);
+    if (res != SQL_SUCCESS) {
+      SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+      throw std::runtime_error("Failed to bind column for position_id");
+    }
+
+    res = SQLBindCol(stmt, 7, SQL_C_LONG, &employee.salary, 0, nullptr);
+    if (res != SQL_SUCCESS) {
+      SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+      throw std::runtime_error("Failed to bind column for salary");
     }
 
     res = SQLFetch(stmt);
     if (res == SQL_SUCCESS) {
-        client.setLastName(std::string(last_name_buf, len1));
-        client.setFirstName(std::string(first_name_buf, len2));
-        client.setPatronymic(std::string(patronymic_buf, len3));
-        client.setAddress(std::string(address_buf, len4));
+        employee.setLastName(std::string(last_name_buf, len1));
+        employee.setFirstName(std::string(first_name_buf, len2));
+        employee.setPatronymic(std::string(patronymic_buf, len3));
+        employee.setAddress(std::string(address_buf, len4));
     }
 
     SQLFreeHandle(SQL_HANDLE_STMT, stmt);
 
-    return client;
+    return employee;
 
 }
 
-std::map<int, int> Client::display_and_return_all(SQLHDBC dbc) {
-    SQLHSTMT stmt;
-    SQLRETURN res = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
-    if (res != SQL_SUCCESS) {
-        throw std::runtime_error("Failed to allocate statement handle");
-    }
-
-    std::string query = "SELECT * FROM clients";
-
-    std::map<int, int> clientMap;
-    int clientId;
-
-    res = SQLPrepare(stmt, (SQLCHAR *)query.c_str(), SQL_NTS);
-    if (res != SQL_SUCCESS) {
-        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-        throw std::runtime_error("Failed to prepare SQL statement");
-    }
-
-    res = SQLBindCol(stmt, 1, SQL_C_LONG, &clientId, 0, nullptr);
-    if (res != SQL_SUCCESS) {
-      SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-      throw std::runtime_error("Failed to bind column for id");
-    }
-
-    SQLLEN len1;
-    char last_name_buf[255];
-    res = SQLBindCol(stmt, 2, SQL_C_CHAR, last_name_buf, sizeof(last_name_buf), &len1);
-    if (res != SQL_SUCCESS) {
-      SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-      throw std::runtime_error("Failed to bind column for last_name");
-    }
-
-    SQLLEN len2;
-    char first_name_buf[255];
-    res = SQLBindCol(stmt, 3, SQL_C_CHAR, first_name_buf, sizeof(first_name_buf), &len2);
-    if (res != SQL_SUCCESS) {
-      SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-      throw std::runtime_error("Failed to bind column for first_name");
-    }
-
-    SQLLEN len3;
-    char patronymic_buf[255];
-    res = SQLBindCol(stmt, 4, SQL_C_CHAR, patronymic_buf, sizeof(patronymic_buf), &len3);
-    if (res != SQL_SUCCESS) {
-      SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-      throw std::runtime_error("Failed to bind column for patronymic");
-    }
-
-    SQLLEN len4;
-    char address_buf[255];
-    res = SQLBindCol(stmt, 5, SQL_C_CHAR, address_buf, sizeof(address_buf), &len4);
-    if (res != SQL_SUCCESS) {
-      SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-      throw std::runtime_error("Failed to bind column for address");
-    }
-
-    res = SQLExecute(stmt);
-    if (res != SQL_SUCCESS) {
-      SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-      throw std::runtime_error("Failed to execute SQL statement");
-    }
- 
-    std::cout << "  "
-              << std::setw(10) << "Id" 
-              << std::setw(20) << "Last name" 
-              << std::setw(20) << "First name" 
-              << std::setw(20) << "Patronymic" 
-              << std::setw(20) << "Address" 
-              << std::endl;
-
-    int rowNum = 1;
-    while (SQLFetch(stmt) == SQL_SUCCESS) {
-        std::cout << rowNum << "."
-                  << std::setw(10) << clientId
-                  << std::setw(20) << last_name_buf
-                  << std::setw(20) << first_name_buf
-                  << std::setw(20) << patronymic_buf
-                  << std::setw(20) << address_buf
-                  << std::endl;
-        clientMap.insert({rowNum, clientId});
-        rowNum++;
-    }
-
-    SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-
-    return clientMap;
-}

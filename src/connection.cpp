@@ -119,7 +119,7 @@ int init_tables(SQLHDBC dbc) {
         return 1;
     }
 
-    std::string create_query = "do $$ begin if not exists (select 1 from pg_type where typname = 'gen') then create type gen as enum ('male', 'female'); end if; if not exists (select 1 from pg_type where typname = 'pos') then create type pos as enum ('vet', 'admin', 'cleaner'); end if; end$$; create table if not exists breeds(id serial primary key, name text UNIQUE); create table if not exists clients(id serial primary key, last_name text not null, first_name text not null, patronymic text, address text); create table if not exists employees(id serial primary key, last_name text not null, first_name text not null, patronymic text, address text, position pos, salary money); create table if not exists animals(id serial primary key, name text, age integer check (age > 0), gender gen, breed_id integer references breeds(id), appearance text, client_id integer references clients(id), vet_id integer references employees(id)); create table if not exists pedigree(parent_id integer references animals(id), child_id integer references animals(id)); create table if not exists exhibitions(id serial primary key, name text, address text, date date); create table if not exists participations(id serial primary key, animal_id integer references animals(id), exhibition_id integer references exhibitions(id), reward text);";
+    std::string create_query = "DO $$BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'gen') THEN CREATE TYPE gen AS ENUM ('male', 'female'); END IF;END$$;create table if not exists breeds(id serial PRIMARY KEY, name text UNIQUE);create table if not exists clients(id serial PRIMARY KEY, last_name text NOT NULL, first_name text NOT NULL, patronymic text, address text);create table if not exists positions(id serial PRIMARY KEY, name text UNIQUE NOT NULL);create table if not exists employees(id serial PRIMARY KEY, last_name text NOT NULL, first_name text NOT NULL, patronymic text, address text, position_id integer REFERENCES positions(id), salary money);create table if not exists animals(id serial PRIMARY KEY, name text, age integer CHECK (age > 0), gender gen, breed_id integer REFERENCES breeds(id), appearance text, client_id integer REFERENCES clients(id), vet_id integer REFERENCES employees(id));create table if not exists pedigree(parent_id integer REFERENCES animals(id), child_id integer REFERENCES animals(id));create table if not exists exhibitions(id serial PRIMARY KEY, name text, address text, date date);create table if not exists participations(id serial PRIMARY KEY, animal_id integer REFERENCES animals(id), exhibition_id integer REFERENCES exhibitions(id), reward text);";
 
     ret = SQLExecDirect(stmt, (SQLCHAR*)create_query.c_str(), SQL_NTS);
     if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
@@ -265,4 +265,128 @@ int get_last_inserted_id(SQLHDBC dbc, const std::string& table_name) {
         SQLFreeHandle(SQL_HANDLE_STMT, stmt);
         throw std::runtime_error("Failed to fetch max ID");
     }
+}
+
+int get_record_num(SQLHDBC dbc, const std::string& table_name) {
+    SQLHSTMT stmt;
+    SQLRETURN res = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
+    if (res != SQL_SUCCESS) {
+        throw std::runtime_error("Failed to allocate statement handle");
+    }
+
+    std::string query = "SELECT COUNT(*) FROM " + table_name;
+    res = SQLPrepare(stmt, (SQLCHAR *)query.c_str(), SQL_NTS);
+    if (res != SQL_SUCCESS) {
+        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+        throw std::runtime_error("Failed to prepare SQL statement");
+    }
+
+    res = SQLExecute(stmt);
+    if (res != SQL_SUCCESS) {
+        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+        throw std::runtime_error("Failed to execute SQL statement");
+    }
+
+    SQLINTEGER numRecords = 0; 
+    SQLLEN numLen = 0;
+    res = SQLBindCol(stmt, 1, SQL_C_LONG, &numRecords, 0, &numLen); 
+    if (res != SQL_SUCCESS) {
+        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+        throw std::runtime_error("Failed to bind column for record count");
+    }
+
+    res = SQLFetch(stmt);
+    if(res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO) {
+        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+        throw std::runtime_error("Failed to fetch record count");
+    }
+
+    SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+    
+    return numRecords;
+}
+
+std::list<std::string> get_enum_values(SQLHDBC dbc, const std::string &enum_type_name) {
+    SQLHSTMT stmt;
+    SQLRETURN ret;
+
+    ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
+    if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
+        show_error(dbc, SQL_HANDLE_DBC);
+        throw std::runtime_error("Failed to allocate statement handle");
+    }
+
+    std::string select_query = "SELECT e.enumlabel as enum_value"
+                        " FROM pg_type t "
+                        " JOIN pg_enum e ON t.oid = e.enumtypid"
+                        " WHERE t.typname = " + enum_type_name;
+
+    ret = SQLExecDirect(stmt, (SQLCHAR*)select_query.c_str(), SQL_NTS);
+    if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
+        show_error(stmt, SQL_HANDLE_STMT);
+        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+        throw std::runtime_error("Failed to execute SQL statement");
+    }
+
+    std::list<std::string> values;
+
+    //Fetch enum values
+    while (SQLFetch(stmt) == SQL_SUCCESS) {
+        SQLCHAR buff[255];
+        SQLGetData(stmt, 1, SQL_C_CHAR, &buff, sizeof(buff), NULL);
+        values.push_back(std::string((char*)buff));
+    }
+
+    SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+
+    return values;
+}
+
+std::list<std::string> get_values(SQLHDBC dbc, const std::string &table_name) {
+    SQLHSTMT stmt;
+    SQLRETURN ret;
+    SQLSMALLINT num_columns;
+
+    ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
+    if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
+        show_error(dbc, SQL_HANDLE_DBC);
+        throw std::runtime_error("Failed to allocate statement handle");
+    }
+
+    std::string select_query = "SELECT * FROM " + table_name;
+    ret = SQLExecDirect(stmt, (SQLCHAR*)select_query.c_str(), SQL_NTS);
+    if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
+        show_error(stmt, SQL_HANDLE_STMT);
+        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+        throw std::runtime_error("Failed to execute SQL statement");
+    }
+
+    ret = SQLNumResultCols(stmt, &num_columns);
+    if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
+        show_error(stmt, SQL_HANDLE_STMT);
+        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+        throw std::runtime_error("Failed to retrieve number of columns");
+    }
+
+    std::list<std::string> rows;
+
+    //Fetch table data
+    while (SQLFetch(stmt) == SQL_SUCCESS) {
+        std::string row = "";
+        for (SQLUSMALLINT i = 1; i <= num_columns; i++) {
+            SQLLEN value_len;
+            SQLCHAR value[128];
+            ret = SQLGetData(stmt, i, SQL_C_CHAR, value, sizeof(value), &value_len);
+            if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
+                show_error(stmt, SQL_HANDLE_STMT);
+                SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+                throw std::runtime_error("Failed to retrieve data");
+            }
+            row += (i > 1 ? "\t" : "") + std::string((char*)value);
+        }
+        rows.push_back(row);
+    }
+
+    SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+    return rows;
 }

@@ -1,6 +1,6 @@
-#include "Breed.hpp"
+#include "Position.hpp"
 
-void Breed::insert(SQLHDBC dbc) {
+void Position::insert(SQLHDBC dbc) {
 
     SQLHSTMT stmt;
     SQLRETURN res = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
@@ -8,7 +8,7 @@ void Breed::insert(SQLHDBC dbc) {
       throw std::runtime_error("Failed to allocate statement handle");
     }
 
-    std::string query = "INSERT INTO breeds (name) VALUES (?) RETURNING id";
+    std::string query = "INSERT INTO positions (name) VALUES (?) RETURNING id";
     res = SQLPrepare(stmt, (SQLCHAR *)query.c_str(), SQL_NTS);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
@@ -43,7 +43,7 @@ void Breed::insert(SQLHDBC dbc) {
     SQLFreeHandle(SQL_HANDLE_STMT, stmt);
 }
 
-void Breed::update(SQLHDBC dbc) {
+void Position::update(SQLHDBC dbc) {
 
     SQLHSTMT stmt;
     SQLRETURN res = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
@@ -51,7 +51,7 @@ void Breed::update(SQLHDBC dbc) {
       throw std::runtime_error("Failed to allocate statement handle");
     }
 
-    std::string query = "UPDATE breeds SET name = ? WHERE id = ?";
+    std::string query = "UPDATE positions SET name = ? WHERE id = ?";
     res = SQLPrepare(stmt, (SQLCHAR *)query.c_str(), SQL_NTS);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
@@ -81,14 +81,14 @@ void Breed::update(SQLHDBC dbc) {
 
 }
 
-void Breed::remove(SQLHDBC dbc) {
+void Position::remove(SQLHDBC dbc) {
     SQLHSTMT stmt;
     SQLRETURN res = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
     if (res != SQL_SUCCESS) {
       throw std::runtime_error("Failed to allocate statement handle");
     }
 
-    std::string query = "DELETE FROM breeds WHERE id = ?";
+    std::string query = "DELETE FROM positions WHERE id = ?";
     res = SQLPrepare(stmt, (SQLCHAR *)query.c_str(), SQL_NTS);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
@@ -110,7 +110,7 @@ void Breed::remove(SQLHDBC dbc) {
     SQLFreeHandle(SQL_HANDLE_STMT, stmt);
   }
 
-Breed Breed::find_by_id(SQLHDBC dbc, int id) {
+Position Position::find_by_id(SQLHDBC dbc, int id) {
     
     SQLHSTMT stmt;
     SQLRETURN res = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
@@ -118,7 +118,7 @@ Breed Breed::find_by_id(SQLHDBC dbc, int id) {
       throw std::runtime_error("Failed to allocate statement handle");
     }
 
-    std::string query = "SELECT * FROM breeds WHERE id = ?";
+    std::string query = "SELECT * FROM positions WHERE id = ?";
 
     res = SQLPrepare(stmt, (SQLCHAR *)query.c_str(), SQL_NTS);
     if (res != SQL_SUCCESS) {
@@ -138,8 +138,8 @@ Breed Breed::find_by_id(SQLHDBC dbc, int id) {
       throw std::runtime_error("Failed to execute SQL statement");
     }
 
-    Breed breed;
-    res = SQLBindCol(stmt, 1, SQL_C_LONG, &breed.id, 0, nullptr);
+    Position position;
+    res = SQLBindCol(stmt, 1, SQL_C_LONG, &position.id, 0, nullptr);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
       throw std::runtime_error("Failed to bind column for id");
@@ -155,26 +155,26 @@ Breed Breed::find_by_id(SQLHDBC dbc, int id) {
 
     res = SQLFetch(stmt);
     if (res == SQL_SUCCESS) {
-      breed.setName(std::string(nameBuffer, len));
+      position.setName(std::string(nameBuffer, len));
     }
 
     SQLFreeHandle(SQL_HANDLE_STMT, stmt);
 
-    return breed;
+    return position;
 
 }
 
-std::map<int, int> Breed::display_and_return_all(SQLHDBC dbc) {
+std::map<int, int> Position::display_and_return_all(SQLHDBC dbc) {
     SQLHSTMT stmt;
     SQLRETURN res = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
     if (res != SQL_SUCCESS) {
         throw std::runtime_error("Failed to allocate statement handle");
     }
 
-    std::string query = "SELECT * FROM breeds";
+    std::string query = "SELECT * FROM positions";
 
-    std::map<int, int> breedMap;
-    int breedId;
+    std::map<int, int> posMap;
+    int positionId;
     char nameBuffer[255];
     SQLLEN len;
 
@@ -184,7 +184,7 @@ std::map<int, int> Breed::display_and_return_all(SQLHDBC dbc) {
         throw std::runtime_error("Failed to prepare SQL statement");
     }
 
-    res = SQLBindCol(stmt, 1, SQL_C_LONG, &breedId, 0, nullptr);
+    res = SQLBindCol(stmt, 1, SQL_C_LONG, &positionId, 0, nullptr);
     if (res != SQL_SUCCESS) {
         SQLFreeHandle(SQL_HANDLE_STMT, stmt);
         throw std::runtime_error("Failed to bind column for id");
@@ -210,14 +210,14 @@ std::map<int, int> Breed::display_and_return_all(SQLHDBC dbc) {
     int rowNum = 1;
     while (SQLFetch(stmt) == SQL_SUCCESS) {
         std::cout << rowNum << "."
-                  << std::setw(10) << breedId
+                  << std::setw(10) << positionId
                   << std::setw(20) << nameBuffer
                   << std::endl;
-        breedMap.insert({rowNum, breedId});
+        posMap.insert({rowNum, positionId});
         rowNum++;
     }
 
     SQLFreeHandle(SQL_HANDLE_STMT, stmt);
 
-    return breedMap;
+    return posMap;
 }

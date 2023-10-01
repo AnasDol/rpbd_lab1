@@ -1,5 +1,5 @@
-#ifndef BREED_HPP
-#define BREED_HPP
+#ifndef POSITION_HPP
+#define POSITION_HPP
 
 #include <string>
 #include <windows.h>
@@ -10,12 +10,12 @@
 #include <map>
 #include "../connection.hpp"
 
-class Breed {
+class Position {
 
 public:
-    Breed() : id(0), name("") {}
+    Position() : id(0), name("") {}
 
-    Breed(int i, const std::string& n) : id(i), name(n) {}
+    Position(int i, const std::string& n) : id(i), name(n) {}
 
     int getId() const {
         return id;
@@ -38,7 +38,7 @@ public:
     /// @brief удаляет строчку с текущим id
     void remove(SQLHDBC dbc);
 
-    static Breed find_by_id(SQLHDBC dbc, int id);
+    static Position find_by_id(SQLHDBC dbc, int id);
 
     static std::map<int, int> display_and_return_all(SQLHDBC dbc);
 
@@ -49,4 +49,4 @@ private:
 };
 
 
-#endif // BREED_HPP
+#endif // POSITION_HPP
