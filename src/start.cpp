@@ -1,6 +1,7 @@
 #include "ActiveRecord/Breed.hpp"
 #include "ActiveRecord/Client.hpp"
 #include "ActiveRecord/Test.hpp"
+#include "ActiveRecord/Request.hpp"
 #include "Windows.h"
 #include "connection.hpp"
 #include "menu.hpp"
@@ -66,12 +67,7 @@ int main() {
 
     // option_add_new_animal(dbc);
 
-    // Client client;
-    // client.setLastName("Spanch");
-    // client.setFirstName("Bob");
-    // client.setAddress("in a pineapple under the sea");
 
-    // client.insert(dbc);
 
     // Client client = Client::find_by_id(dbc, 2);
     // client.setPatronymic("");
@@ -90,7 +86,7 @@ int main() {
     //std::cout << get_record_num(dbc, "breeds");
 
     
-    option_add_new_animal(dbc);
+    //option_add_new_animal(dbc);
 
     //option_add_new_vet(dbc);
 
@@ -99,6 +95,28 @@ int main() {
     //Animal a(0, "Kir", 7, "male", 3, "super cute", 2, 1);
     //a.insert(dbc);
 
+
+    start(dbc);
+
+    // Client client;
+    // client.setLastName("Spanch");
+    // client.setFirstName("Bob");
+    // client.setAddress("in a pineapple under the sea");
+    //client.insert(dbc);
+
+    // Breed breed;
+    // breed.setName("Cat");
+    // breed.insert(dbc);
+
+    // Request request;
+    // request.setBreedId(1);
+    // request.setClientId(1);
+    // request.setGender("male");
+    // request.setDay(10);
+    // request.setMonth(2);
+    // request.setYear(2022);
+
+    // request.insert(dbc);
 
 
     disconnect_from_db(env, dbc);

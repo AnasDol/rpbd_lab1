@@ -258,7 +258,7 @@ std::map<int, int> Client::display_and_return_all(SQLHDBC dbc) {
 
     std::cout << "  " << std::setw(10) << "Id" << std::setw(20) << "Last name"
               << std::setw(20) << "First name" << std::setw(20) << "Patronymic"
-              << std::setw(20) << "Address" << std::endl;
+              << std::setw(40) << "Address" << std::endl;
 
     if (get_record_num(dbc, "clients")==0) {
         std::cout << "---- Nothing to show -\n";
@@ -323,7 +323,7 @@ std::map<int, int> Client::display_and_return_all(SQLHDBC dbc) {
     while (SQLFetch(stmt) == SQL_SUCCESS) {
         std::cout << rowNum << "." << std::setw(10) << clientId << std::setw(20)
                   << last_name_buf << std::setw(20) << first_name_buf
-                  << std::setw(20) << patronymic_buf << std::setw(20)
+                  << std::setw(20) << patronymic_buf << std::setw(40)
                   << address_buf << std::endl;
         clientMap.insert({rowNum, clientId});
         rowNum++;
