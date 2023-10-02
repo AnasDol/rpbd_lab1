@@ -180,6 +180,14 @@ std::map<int, int> Breed::display_and_return_all(SQLHDBC dbc) {
     char nameBuffer[255];
     SQLLEN len;
 
+    std::cout << "  " << std::setw(10) << "Id" << std::setw(20) << "Name"
+              << std::endl;
+
+    if (get_record_num(dbc, "breeds")==0) {
+        std::cout << "---- Nothing to show -\n";
+        return breedMap;
+    }
+
     res = SQLPrepare(stmt, (SQLCHAR *)query.c_str(), SQL_NTS);
     if (res != SQL_SUCCESS) {
         SQLFreeHandle(SQL_HANDLE_STMT, stmt);
@@ -203,9 +211,6 @@ std::map<int, int> Breed::display_and_return_all(SQLHDBC dbc) {
         SQLFreeHandle(SQL_HANDLE_STMT, stmt);
         throw std::runtime_error("Failed to execute SQL statement");
     }
-
-    std::cout << "  " << std::setw(10) << "Id" << std::setw(20) << "Name"
-              << std::endl;
 
     int rowNum = 1;
     while (SQLFetch(stmt) == SQL_SUCCESS) {

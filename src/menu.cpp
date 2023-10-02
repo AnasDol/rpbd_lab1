@@ -57,6 +57,7 @@ int option_add_new_animal(SQLHDBC dbc) {
         return -1;
     }
 
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     std::cout << "Appearance: ";
     getline(std::cin, appearance);
 
@@ -296,8 +297,8 @@ int option_add_new_vet(SQLHDBC dbc) {
 
     Position pos = Position::find(dbc, "name", "vet");
     if (pos.getId() == 0) {
-        std::cout << "Add vet position first.\n";
-        return -1;
+        pos.setName("vet");
+        pos.insert(dbc);
     }
 
     position_id = pos.getId();

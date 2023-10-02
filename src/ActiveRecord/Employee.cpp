@@ -385,7 +385,7 @@ std::map<int, int> Employee::display_and_return_vets(SQLHDBC dbc) {
               << std::setw(20) << "Salary" << std::endl;
 
     if (countRecords(dbc, "positions", "name", "vet") == 0) {
-        std::cout << std::setw(60) << "Nothing to show\n";
+        std::cout << "---- Nothing to show -\n";
         return empMap;
     }
 

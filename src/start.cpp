@@ -87,12 +87,17 @@ int main() {
 
     // Client::display_and_return_all(dbc);
 
+    //std::cout << get_record_num(dbc, "breeds");
+
     
     option_add_new_animal(dbc);
 
     //option_add_new_vet(dbc);
 
     //Employee::display_and_return_vets(dbc);
+
+    //Animal a(0, "Kir", 7, "male", 3, "super cute", 2, 1);
+    //a.insert(dbc);
 
 
 

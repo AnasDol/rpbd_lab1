@@ -10,6 +10,8 @@ void show_error(SQLHANDLE handle, SQLSMALLINT handle_type) {
     }
 }
 
+
+
 int connect_to_db(std::string dsn, std::string uid, std::string pwd, SQLHENV *env, SQLHDBC *dbc) {
     SQLRETURN ret;
 
@@ -269,41 +271,37 @@ int get_last_inserted_id(SQLHDBC dbc, const std::string& table_name) {
 
 int get_record_num(SQLHDBC dbc, const std::string& table_name) {
     SQLHSTMT stmt;
-    SQLRETURN res = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
-    if (res != SQL_SUCCESS) {
+    SQLRETURN ret;
+
+    // Выполнение команды SQL для получения числа строк в таблице
+    std::string query = "SELECT COUNT(*) FROM " + table_name;
+    ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
+    if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
         throw std::runtime_error("Failed to allocate statement handle");
     }
-
-    std::string query = "SELECT COUNT(*) FROM " + table_name;
-    res = SQLPrepare(stmt, (SQLCHAR *)query.c_str(), SQL_NTS);
-    if (res != SQL_SUCCESS) {
-        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-        throw std::runtime_error("Failed to prepare SQL statement");
-    }
-
-    res = SQLExecute(stmt);
-    if (res != SQL_SUCCESS) {
+    ret = SQLExecDirect(stmt, (SQLCHAR*)(query.c_str()), SQL_NTS);
+    if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
         SQLFreeHandle(SQL_HANDLE_STMT, stmt);
         throw std::runtime_error("Failed to execute SQL statement");
     }
 
-    SQLINTEGER numRecords = 0; 
-    SQLLEN numLen = 0;
-    res = SQLBindCol(stmt, 1, SQL_C_LONG, &numRecords, 0, &numLen); 
-    if (res != SQL_SUCCESS) {
+    // Получение результата запроса
+    SQLLEN rowCount;
+    ret = SQLFetch(stmt);
+    if (ret == SQL_SUCCESS || ret == SQL_SUCCESS_WITH_INFO) {
+        ret = SQLGetData(stmt, 1, SQL_C_LONG, &rowCount, 0, NULL);
+        if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
+            SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+            throw std::runtime_error("Failed to get result data");
+        }
+    } else {
         SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-        throw std::runtime_error("Failed to bind column for record count");
+        throw std::runtime_error("Failed to fetch result data");
     }
 
-    res = SQLFetch(stmt);
-    if(res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO) {
-        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-        throw std::runtime_error("Failed to fetch record count");
-    }
-
+    // Освобождение ресурсов и возвращение результата
     SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-    
-    return numRecords;
+    return static_cast<int>(rowCount);
 }
 
 std::list<std::string> get_enum_values(SQLHDBC dbc, const std::string &enum_type_name) {

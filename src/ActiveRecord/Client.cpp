@@ -256,6 +256,15 @@ std::map<int, int> Client::display_and_return_all(SQLHDBC dbc) {
     std::map<int, int> clientMap;
     int clientId;
 
+    std::cout << "  " << std::setw(10) << "Id" << std::setw(20) << "Last name"
+              << std::setw(20) << "First name" << std::setw(20) << "Patronymic"
+              << std::setw(20) << "Address" << std::endl;
+
+    if (get_record_num(dbc, "clients")==0) {
+        std::cout << "---- Nothing to show -\n";
+        return clientMap;
+    }
+
     res = SQLPrepare(stmt, (SQLCHAR *)query.c_str(), SQL_NTS);
     if (res != SQL_SUCCESS) {
         SQLFreeHandle(SQL_HANDLE_STMT, stmt);
@@ -309,10 +318,6 @@ std::map<int, int> Client::display_and_return_all(SQLHDBC dbc) {
         SQLFreeHandle(SQL_HANDLE_STMT, stmt);
         throw std::runtime_error("Failed to execute SQL statement");
     }
-
-    std::cout << "  " << std::setw(10) << "Id" << std::setw(20) << "Last name"
-              << std::setw(20) << "First name" << std::setw(20) << "Patronymic"
-              << std::setw(20) << "Address" << std::endl;
 
     int rowNum = 1;
     while (SQLFetch(stmt) == SQL_SUCCESS) {
