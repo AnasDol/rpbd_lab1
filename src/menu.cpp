@@ -460,7 +460,8 @@ int select_animal(SQLHDBC dbc, bool addition) {
     std::cout << "Select animal:\n";
     std::map<int, int> record_map = Animal::get_values(dbc);
     Animal::display(dbc, record_map);
-    if (addition) std::cout << "or\n" << (int)(record_map.size())+1 << ". Add new animal\n> ";
+    if (addition) std::cout << "or\n" << (int)(record_map.size())+1 << ". Add new animal\n";
+    std::cout << "> ";
 
     int number;
     std::cin >> number;
@@ -493,7 +494,8 @@ int select_breed(SQLHDBC dbc, bool addition) {
     std::cout << "Select breed:\n";
     std::map<int, int> record_map = Breed::get_values(dbc);
     Breed::display(dbc, record_map);
-    if (addition) std::cout << "or\n" << (int)(record_map.size())+1 << ". Add new breed\n> ";
+    if (addition) std::cout << "or\n" << (int)(record_map.size())+1 << ". Add new breed\n";
+    std::cout << "> ";
 
     int number;
     std::cin >> number;
@@ -525,7 +527,8 @@ int select_client(SQLHDBC dbc, bool addition) {
     std::cout << "Select client:\n";
     std::map<int, int> record_map = Client::get_values(dbc);
     Client::display(dbc, record_map);
-    if (addition) std::cout << "or\n" << (int)(record_map.size())+1 << ". Add new client\n> ";
+    if (addition) std::cout << "or\n" << (int)(record_map.size())+1 << ". Add new client\n";
+    std::cout << "> ";
 
     int number;
     std::cin >> number;
@@ -556,7 +559,8 @@ int select_position(SQLHDBC dbc, bool addition) {
     std::cout << "Select position:\n";
     std::map<int, int> record_map = Position::get_values(dbc);
     Position::display(dbc, record_map);
-    if (addition) std::cout << "or\n" << (int)(record_map.size())+1 << ". Add new position\n> ";
+    if (addition) std::cout << "or\n" << (int)(record_map.size())+1 << ". Add new position\n";
+    std::cout << "> ";
 
     int number;
     std::cin >> number;
@@ -612,7 +616,8 @@ int select_vet(SQLHDBC dbc, bool addition) {
 
     std::map<int, int> record_map = Employee::get_values(dbc, "position_id", std::to_string(position_vet_id));
     Employee::display(dbc, record_map);
-    if (addition) std::cout << "or\n" << (int)(record_map.size())+1 << ". Add new vet\n> ";
+    if (addition) std::cout << "or\n" << (int)(record_map.size())+1 << ". Add new vet\n";
+    std::cout << "> ";
 
     int number;
     std::cin >> number;
