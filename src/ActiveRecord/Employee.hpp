@@ -23,9 +23,9 @@ public:
     void remove(SQLHDBC dbc);
 
     static Employee find(SQLHDBC dbc, int id);
-
-    static std::map<int, int> display_and_return(SQLHDBC dbc);
-    static std::map<int, int> display_and_return_vets(SQLHDBC dbc);
+    static std::map<int, int> get_values(SQLHDBC dbc);
+    static std::map<int, int> get_values(SQLHDBC dbc, std::string attribute, std::string value);
+    static void display(SQLHDBC dbc, std::map<int, int> record_map);
 
     // getters
     int getId() const { return id; }
@@ -45,6 +45,9 @@ public:
     void setSalary(int s) { salary = s; }
 
 private:
+
+    static inline const std::string table_name {"employees"};
+
     int id;
     std::string last_name;
     std::string first_name;

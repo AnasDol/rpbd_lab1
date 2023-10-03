@@ -23,9 +23,9 @@ public:
     void remove(SQLHDBC dbc);
 
     static Client find(SQLHDBC dbc, int id);
-    static Client find(SQLHDBC dbc, std::string attribute, std::string value);
-    static std::map<int, int> display_and_return(SQLHDBC dbc);
-    static std::map<int, int> display_and_return(SQLHDBC dbc, std::string attribute, std::string value);
+    static std::map<int, int> get_values(SQLHDBC dbc);
+    static std::map<int, int> get_values(SQLHDBC dbc, std::string attribute, std::string value);
+    static void display(SQLHDBC dbc, std::map<int, int> record_map);
 
     // getters
     int getId() const { return id; }
@@ -41,6 +41,9 @@ public:
     void setAddress(const std::string& a) { address = a; }
 
 private:
+
+    static inline const std::string table_name {"clients"};
+
     int id;
     std::string last_name;
     std::string first_name;

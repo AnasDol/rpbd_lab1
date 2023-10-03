@@ -8,3 +8,6 @@ main:
 
 project:
 	$(CC) $(CFLAGS) start.cpp ActiveRecord/*.cpp connection.cpp menu.cpp C:/msys64/mingw64/lib/libodbc32.a -o ../build/start.exe
+
+test:
+	$(CC) $(CFLAGS) test.cpp connection.cpp ActiveRecord/Animal.cpp ActiveRecord/Breed.cpp C:/msys64/mingw64/lib/libodbc32.a -o ../build/test.exe

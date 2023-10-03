@@ -27,17 +27,16 @@ int option_add_new_request(SQLHDBC dbc);
 
 int option_update_data(SQLHDBC dbc);
 
-int select_breed(SQLHDBC dbc);
-int select_client(SQLHDBC dbc);
+int select_animal(SQLHDBC dbc, bool addition = true);
+int select_breed(SQLHDBC dbc, bool addition = true);
+int select_client(SQLHDBC dbc, bool addition = true);
+int select_position(SQLHDBC dbc, bool addition = true);
 std::string select_gender();
 int select_date(int* day, int* month, int* year);
 
 bool isLeapYear(int year);
 bool isValidDate(int day, int month, int year);
 
-
-
 void print_table_list();
-
 
 #endif // MENU_HPP
