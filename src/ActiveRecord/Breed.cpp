@@ -112,7 +112,7 @@ void Breed::remove(SQLHDBC dbc) {
     SQLFreeHandle(SQL_HANDLE_STMT, stmt);
 }
 
-Breed Breed::find_by_id(SQLHDBC dbc, int id) {
+Breed Breed::find(SQLHDBC dbc, int id) {
 
     SQLHSTMT stmt;
     SQLRETURN res = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
@@ -166,7 +166,7 @@ Breed Breed::find_by_id(SQLHDBC dbc, int id) {
     return breed;
 }
 
-std::map<int, int> Breed::display_and_return_all(SQLHDBC dbc) {
+std::map<int, int> Breed::display_and_return(SQLHDBC dbc) {
     SQLHSTMT stmt;
     SQLRETURN res = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
     if (res != SQL_SUCCESS) {

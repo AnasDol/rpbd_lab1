@@ -19,17 +19,15 @@ public:
         id(id), name(name), age(age), gender(gender),
         breed_id(breed_id), appearance(appearance), client_id(client_id), vet_id(vet_id) {}
 
-    /// @brief добавляет в базу новую строчку с текущим name, в значение поля id записывается id новой строки
     void insert(SQLHDBC dbc);
-
-    /// @brief изменяет значение name в строчке с текущим id
     void update(SQLHDBC dbc);
-
-    /// @brief удаляет строчку с текущим id
     void remove(SQLHDBC dbc);
 
-    static Animal find_by_id(SQLHDBC dbc, int id);
-    static std::map<int, int> display_and_return_all(SQLHDBC dbc);
+    static Animal find(SQLHDBC dbc, int id);
+    static Animal find(SQLHDBC dbc, std::string attribute, std::string value);
+    static std::map<int, int> display_and_return(SQLHDBC dbc);
+    static std::map<int, int> display_and_return(SQLHDBC dbc, std::string attribute, std::string value);
+
 
     // getters
     int getId() const { return id; }
@@ -40,6 +38,7 @@ public:
     std::string getAppearance() const { return appearance; }
     int getClientId() const { return client_id; }
     int getVetId() const { return vet_id; }
+
     // setters
     void setName(std::string name) { this->name = name; }
     void setAge(int age) { this->age = age; }

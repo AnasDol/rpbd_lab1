@@ -110,7 +110,7 @@ void Position::remove(SQLHDBC dbc) {
     SQLFreeHandle(SQL_HANDLE_STMT, stmt);
   }
 
-Position Position::find_by_id(SQLHDBC dbc, int id) {
+Position Position::find(SQLHDBC dbc, int id) {
     
     SQLHSTMT stmt;
     SQLRETURN res = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
@@ -218,7 +218,7 @@ Position Position::find(SQLHDBC dbc, std::string attribute, std::string value) {
     return position;
 }
 
-std::map<int, int> Position::display_and_return_all(SQLHDBC dbc) {
+std::map<int, int> Position::display_and_return(SQLHDBC dbc) {
     SQLHSTMT stmt;
     SQLRETURN res = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
     if (res != SQL_SUCCESS) {

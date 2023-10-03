@@ -180,7 +180,7 @@ void Animal::remove(SQLHDBC dbc) {
     SQLFreeHandle(SQL_HANDLE_STMT, stmt);
   }
 
-Animal Animal::find_by_id(SQLHDBC dbc, int id) {
+Animal Animal::find(SQLHDBC dbc, int id) {
     SQLHSTMT stmt;
     SQLRETURN res = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
     if (res != SQL_SUCCESS) {
@@ -241,7 +241,68 @@ Animal Animal::find_by_id(SQLHDBC dbc, int id) {
     return animal;
 }
 
-std::map<int, int> Animal::display_and_return_all(SQLHDBC dbc) {
+Animal Animal::find(SQLHDBC dbc, std::string attribute, std::string value) {
+    SQLHSTMT stmt;
+    SQLRETURN res = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
+    if (res != SQL_SUCCESS) {
+        throw std::runtime_error("Failed to allocate statement handle");
+    }
+
+    std::string query = "SELECT id, name, age, gender, breed_id, appearance, client_id, vet_id FROM animals WHERE id = ?";
+
+    res = SQLPrepare(stmt, (SQLCHAR *)query.c_str(), SQL_NTS);
+    if (res != SQL_SUCCESS) {
+      SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+      throw std::runtime_error("Failed to prepare SQL statement");
+    }
+
+    res = SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &id, 0, nullptr);
+    if (res != SQL_SUCCESS) {
+      SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+      throw std::runtime_error("Failed to bind parameter for id");
+    }
+
+    res = SQLExecute(stmt);
+    if (res != SQL_SUCCESS) {
+      SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+      throw std::runtime_error("Failed to execute SQL statement");
+    }
+
+    Animal animal;
+    SQLCHAR buf1[255], buf2[255], buf3[255];
+    SQLLEN len1, len2, len3;
+
+    if (SQLBindCol(stmt, 1, SQL_C_LONG, &animal.id, 0, nullptr) != SQL_SUCCESS
+      || SQLBindCol(stmt, 2, SQL_C_CHAR, buf1, sizeof(buf1), &len1) != SQL_SUCCESS
+      || SQLBindCol(stmt, 3, SQL_C_LONG, &animal.age, 0, nullptr) != SQL_SUCCESS
+      || SQLBindCol(stmt, 4, SQL_C_CHAR, buf2, sizeof(buf2), &len2) != SQL_SUCCESS
+      || SQLBindCol(stmt, 5, SQL_C_LONG, &animal.breed_id, 0, nullptr) != SQL_SUCCESS
+      || SQLBindCol(stmt, 6, SQL_C_CHAR, buf3, sizeof(buf3), &len3) != SQL_SUCCESS
+      || SQLBindCol(stmt, 7, SQL_C_LONG, &animal.client_id, 0, nullptr) != SQL_SUCCESS
+      || SQLBindCol(stmt, 8, SQL_C_LONG, &animal.vet_id, 0, nullptr) != SQL_SUCCESS) {
+      SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+      throw std::runtime_error("Failed to bind column");
+    }
+
+    res = SQLFetch(stmt);
+    if (res == SQL_SUCCESS) {
+        animal.name = std::string((char*)buf1, len1);
+        animal.gender = std::string((char*)buf2, len2);
+        animal.appearance = std::string((char*)buf3, len3);
+    } else if (res == SQL_NO_DATA) {
+        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+        throw std::runtime_error("No such animal with given id");
+    } else {
+        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+        throw std::runtime_error("Failed to fetch data");
+    }
+
+    SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+
+    return animal;
+}
+
+std::map<int, int> Animal::display_and_return(SQLHDBC dbc) {
 
     SQLHSTMT stmt;
     SQLRETURN res = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);

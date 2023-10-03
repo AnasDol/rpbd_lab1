@@ -101,7 +101,7 @@ int option_add_new_animal(SQLHDBC dbc) {
     gender = (option == 1) ? "male" : "female";
 
     std::cout << "Select breed:\n";
-    std::map<int, int> breed_map = Breed::display_and_return_all(dbc);
+    std::map<int, int> breed_map = Breed::display_and_return(dbc);
     std::cout << "or\n" << (int)(breed_map.size())+1 << ". Add new breed\n> ";
 
     int number;
@@ -129,7 +129,7 @@ int option_add_new_animal(SQLHDBC dbc) {
     getline(std::cin, appearance);
 
     std::cout << "Select client:\n";
-    std::map<int, int> client_map = Client::display_and_return_all(dbc);
+    std::map<int, int> client_map = Client::display_and_return(dbc);
     std::cout << "or\n" << (int)(client_map.size())+1 << ". Add new client\n> ";
 
     std::cin >> number;
@@ -287,7 +287,7 @@ int option_add_new_employee(SQLHDBC dbc) {
     getline(std::cin, address);
 
     std::cout << "Select position:\n";
-    std::map<int, int> positions = Position::display_and_return_all(dbc);
+    std::map<int, int> positions = Position::display_and_return(dbc);
     std::cout << "or\n" << (int)(positions.size())+1 << ". Add new position\n> ";
 
     int number;
@@ -465,12 +465,125 @@ int option_add_new_request(SQLHDBC dbc) {
 
 }
 
+int option_update_animal(SQLHDBC dbc) {
+
+    int animal_id = select_animal(dbc);
+    if (animal_id == -1) {
+        return -1;
+    }
+
+    Animal record = Animal::find(dbc, animal_id);
+
+    std::cout << "Select attribute to update:\n";
+    std::cout << "1. name\n";
+    std::cout << "2. age\n";
+    std::cout << "3. gender\n";
+    std::cout << "4. breed_id\n";
+    std::cout << "5. appearance\n";
+    std::cout << "6. client_id\n";
+    std::cout << "7. vet_id\n";
+    std::cout << "> ";
+
+    int option = -1;
+    std::cin >> option;
+
+    if (!std::cin.good() || option < 1 || option > 7) {
+        std::cout << "Wrong input.\n";
+        return -1;
+    }
+
+    std::string name;
+    int age;
+    std::string gender;
+    int breed_id;
+    std::string appearance;
+    int client_id;
+    int vet_id;
+    
+    switch (option)
+    {
+    case 1:
+        std::cout << "New name: ";
+        getline(std::cin, name);
+        record.setName(name);
+        break;
+    case 2:
+        std::cout << "New age: ";
+        std::cin >> age;
+        record.setAge(age);
+        break;
+    case 3:
+        gender = select_gender();
+        record.setGender(gender);
+        break;
+    case 4:
+        breed_id = select_breed(dbc);
+        record.setBreedId(breed_id);
+        break;
+    case 5:
+        std::cout << "New appearance: ";
+        getline(std::cin, appearance);
+        record.setAppearance(appearance);
+        break;
+    case 6:
+        client_id = select_client(dbc);
+        record.setClientId(client_id);
+        break;
+    case 7:
+        vet_id = select_vet(dbc);
+        record.setVetId(vet_id);
+        break;
+    
+    default:
+        break;
+    }
+
+    try {
+        record.update(dbc);
+        std::cout << "Animal data updated\n";
+    } catch (std::runtime_error const& e) {
+        std::cout << "Failed to update animal data.\nError occured: " << e.what();
+        return -1;
+    }
+
+    return record.getId();
+
+
+
+}
+
+int select_animal(SQLHDBC dbc) {
+    int animal_id;
+    std::cout << "Select animal:\n";
+    std::map<int, int> animal_map = Breed::display_and_return(dbc);
+
+    int number;
+    std::cin >> number;
+
+    if (!std::cin.good()) {
+        std::cout << "Wrong input.\n";
+        return -1;
+    }
+    
+    // ключ найден
+    if (animal_map.find(number) != animal_map.end()) {
+        animal_id = animal_map[number];
+    }
+    else {
+        std::cout << "Wrong input.\n";
+        return -1;
+    }
+
+    return animal_id;
+
+}
+
 int select_breed(SQLHDBC dbc) {
 
     int breed_id; 
 
     std::cout << "Select breed:\n";
-    std::map<int, int> breed_map = Breed::display_and_return_all(dbc);
+    std::map<int, int> breed_map = Breed::display_and_return(dbc);
     std::cout << "or\n" << (int)(breed_map.size())+1 << ". Add new breed\n> ";
 
     int number;
@@ -501,7 +614,7 @@ int select_client(SQLHDBC dbc) {
     int client_id;
 
     std::cout << "Select client:\n";
-    std::map<int, int> client_map = Client::display_and_return_all(dbc);
+    std::map<int, int> client_map = Client::display_and_return(dbc);
     std::cout << "or\n" << (int)(client_map.size())+1 << ". Add new client\n> ";
 
     int number;
@@ -539,6 +652,33 @@ std::string select_gender() {
 
     return (gen == 1) ? "male" : "female";
 
+}
+
+int select_vet(SQLHDBC dbc) {
+    int vet_id;
+    std::cout << "Select vet:\n";
+    std::map<int, int> vet_map = Employee::display_and_return_vets(dbc);
+    std::cout << "or\n" << (int)(vet_map.size())+1 << ". Add new vet\n> ";
+    int number;
+    std::cin >> number;
+
+    if (!std::cin.good()) {
+        std::cout << "Wrong input.\n";
+        return -1;
+    }
+    
+    // ключ найден
+    if (vet_map.find(number) != vet_map.end()) {
+        vet_id = vet_map[number];
+    }
+    else if (number == (int)(vet_map.size())+1) {
+        vet_id = option_add_new_vet(dbc);
+    }
+    else {
+        std::cout << "Wrong input.\n";
+        return -1;
+    }
+    return vet_id;
 }
 
 int select_date(int* day, int* month, int* year) {

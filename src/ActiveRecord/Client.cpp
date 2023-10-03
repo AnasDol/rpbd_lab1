@@ -160,7 +160,7 @@ void Client::remove(SQLHDBC dbc) {
     SQLFreeHandle(SQL_HANDLE_STMT, stmt);
 }
 
-Client Client::find_by_id(SQLHDBC dbc, int id) {
+Client Client::find(SQLHDBC dbc, int id) {
     SQLHSTMT stmt;
     SQLRETURN res = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
     if (res != SQL_SUCCESS) {
@@ -244,7 +244,7 @@ Client Client::find_by_id(SQLHDBC dbc, int id) {
     return client;
 }
 
-std::map<int, int> Client::display_and_return_all(SQLHDBC dbc) {
+std::map<int, int> Client::display_and_return(SQLHDBC dbc) {
     SQLHSTMT stmt;
     SQLRETURN res = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
     if (res != SQL_SUCCESS) {

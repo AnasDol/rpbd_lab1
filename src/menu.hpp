@@ -25,6 +25,8 @@ int option_add_new_vet(SQLHDBC dbc);
 int option_add_new_position(SQLHDBC dbc);
 int option_add_new_request(SQLHDBC dbc);
 
+int option_update_data(SQLHDBC dbc);
+
 int select_breed(SQLHDBC dbc);
 int select_client(SQLHDBC dbc);
 std::string select_gender();

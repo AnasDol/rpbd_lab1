@@ -22,6 +22,7 @@ public:
     void update(SQLHDBC dbc);
     void remove(SQLHDBC dbc);
 
+    static Request find(SQLHDBC dbc, int id);
     static Request find(SQLHDBC dbc, std::string attribute, std::string value);
     static std::map<int, int> display_and_return(SQLHDBC dbc);
     static std::map<int, int> display_and_return(SQLHDBC dbc, std::string attribute, std::string value);
