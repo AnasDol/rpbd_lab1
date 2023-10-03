@@ -13,6 +13,7 @@
 class Request {
 
 public:
+
     Request() : id(0), client_id(0), breed_id(0), gender(""), day(0), month(0), year(0) {}
 
     Request(int id, int client_id, int breed_id, std::string gender, int day, int month, int year)
@@ -23,9 +24,9 @@ public:
     void remove(SQLHDBC dbc);
 
     static Request find(SQLHDBC dbc, int id);
-    static Request find(SQLHDBC dbc, std::string attribute, std::string value);
-    static std::map<int, int> display_and_return(SQLHDBC dbc);
-    static std::map<int, int> display_and_return(SQLHDBC dbc, std::string attribute, std::string value);
+    static std::map<int, int> get_values(SQLHDBC dbc);
+    static std::map<int, int> get_values(SQLHDBC dbc, std::string attribute, std::string value);
+    static void display(SQLHDBC dbc, std::map<int, int> record_map);
 
     // getters
     int getId() const { return id; }
@@ -46,6 +47,9 @@ public:
     void setYear(int year) { this->year = year; }
 
 private:
+
+    static inline const std::string table_name {"requests"};
+
     int id;
     int client_id;
     int breed_id;

@@ -30,8 +30,12 @@ int main() {
     // std::map<int, int> animals = Animal::get_values(dbc);
     // Animal::display(dbc, animals);
 
-    std::map<int, int> breeds = Breed::get_values(dbc);
-    Breed::display(dbc, breeds);
+    //std::map<int, int> breeds = Breed::get_values(dbc);
+   // Breed::display(dbc, breeds);
+
+    Position pos;
+    pos.setName("test");
+    pos.insert(dbc);
 
     disconnect_from_db(env, dbc);
 

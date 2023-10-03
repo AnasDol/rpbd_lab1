@@ -19,7 +19,7 @@ void start(SQLHDBC dbc) {
         std::cout << "\n";
         std::cout << "10. Show data\n";
         std::cout << "\n";
-        std::cout << "11. Update information\n";
+        std::cout << "11. Update animal\n";
         std::cout << "12. Delete information\n";
         std::cout << "\n";
         std::cout << "-1. Exit\n";
@@ -59,6 +59,10 @@ void proceed(SQLHDBC dbc, int option) {
     case 9:
         option_add_new_request(dbc);
         break;
+
+    case 11:
+        option_update_animal(dbc);
+        break;
     
     default:
         break;
@@ -75,8 +79,6 @@ int option_add_new_animal(SQLHDBC dbc) {
     std::string appearance;
     int client_id;
     int vet_id;
-
-    int option;
 
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     std::cout << "Name: ";
@@ -263,10 +265,13 @@ int option_add_new_vet(SQLHDBC dbc) {
     std::cout << "Employee address: ";
     getline(std::cin, address);
 
-    Position pos = Position::find(dbc, "name", "vet");
-    if (pos.getId() == 0) {
+    Position pos;
+    std::map<int,int> vet = Position::get_values(dbc, "name", "vet");
+    if (vet.size() == 0) {
         pos.setName("vet");
         pos.insert(dbc);
+    } else {
+        pos = Position::find(dbc, vet[1]);
     }
 
     position_id = pos.getId();
@@ -367,7 +372,7 @@ int option_add_new_request(SQLHDBC dbc) {
 
 int option_update_animal(SQLHDBC dbc) {
 
-    int animal_id = select_animal(dbc);
+    int animal_id = select_animal(dbc, false);
     if (animal_id == -1) {
         return -1;
     }
@@ -590,12 +595,23 @@ std::string select_gender() {
 }
 
 int select_vet(SQLHDBC dbc, bool addition) {
+
     int vet_id;
     std::cout << "Select vet:\n";
 
-    int vet_id = Position::get_values(dbc, "name", "vet")[0];
-    std::map<int, int> record_map = Employee::get_values(dbc, "vet_id", std::to_string(vet_id));
-    Position::display(dbc, record_map);
+    Position pos;
+    std::map<int,int> vet = Position::get_values(dbc, "name", "vet");
+
+    if (vet.size() == 0) {
+        pos.setName("vet");
+        pos.insert(dbc);
+    } else {
+        pos = Position::find(dbc, vet[1]);
+    }
+    int position_vet_id = pos.getId();
+
+    std::map<int, int> record_map = Employee::get_values(dbc, "position_id", std::to_string(position_vet_id));
+    Employee::display(dbc, record_map);
     if (addition) std::cout << "or\n" << (int)(record_map.size())+1 << ". Add new vet\n> ";
 
     int number;
