@@ -15,10 +15,10 @@ void start(SQLHDBC dbc) {
         std::cout << "5. Add new position\n";
         std::cout << "6. Add new exhibition\n";
         std::cout << "\n";
-        std::cout << "7. Enter data on the participation of animals in exhibitions\n";
-        std::cout << "8. Enter pedigree information\n";
+        std::cout << "7. Create new request\n";
         std::cout << "\n";
-        std::cout << "9. Create new request\n";
+        std::cout << "8. Enter data on the participation of animals in exhibitions\n";
+        std::cout << "9. Enter pedigree information\n";
         std::cout << "\n";
         std::cout << "11. Update animal\n";
         std::cout << "12. Update breed\n";
@@ -77,9 +77,14 @@ void proceed(SQLHDBC dbc, int option) {
     case 5:
         option_add_new_position(dbc);
         break;
-
-    case 9:
+    case 6:
+        option_add_new_exhibition(dbc);
+        break;
+    case 7:
         option_add_new_request(dbc);
+        break;
+    case 8:
+        option_add_new_participation(dbc);
         break;
 
     case 11:
@@ -96,6 +101,9 @@ void proceed(SQLHDBC dbc, int option) {
         break;
     case 15:
         option_update_position(dbc);
+        break;
+    case 16:
+        option_update_exhibition(dbc);
         break;
     case 17:
         option_update_request(dbc);
@@ -116,7 +124,9 @@ void proceed(SQLHDBC dbc, int option) {
     case 25:
         option_remove_position(dbc);
         break;
-
+    case 26:
+        option_remove_exhibition(dbc);
+        break;
     case 27:
         option_remove_request(dbc);
         break;
@@ -190,6 +200,15 @@ int option_add_new_animal(SQLHDBC dbc) {
     } catch (std::runtime_error const& e) {
         std::cout << "Failed to add new entry to animals.\nError occured: " << e.what() << "\n";
         return -1;
+    }
+
+    std::cout << "Do you want to enter information about participations in exhibitions? (y/n)\n> ";
+    char enter = '?';
+    std::cin >> enter;
+    if (!std::cin.good() || (enter != 'y' && enter != 'Y' && enter != 'n' && enter != 'N')) {
+        std::cout << "Wrong input.\n";
+    } else {
+        option_add_new_participation(dbc, new_record.getId());
     }
 
     return new_record.getId();
@@ -437,6 +456,139 @@ int option_add_new_request(SQLHDBC dbc) {
 
     return new_record.getId();
 
+}
+
+int option_add_new_exhibition(SQLHDBC dbc) { 
+
+    std::string name;
+    std::string address;
+    int day, month, year;
+
+    std::cout << "Exhibition name: ";
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    getline(std::cin, name);
+
+    std::cout << "Exhibition address: ";
+    getline(std::cin, address);
+
+    if (select_date(&day, &month, &year) == -1) {
+        return -1;
+    }
+
+    Exhibition new_record(0, name, address, day, month, year);
+
+    try {
+        new_record.insert(dbc);
+        std::cout << "New entry added to exhibitions.\n";
+    } catch (std::runtime_error const& e) {
+        std::cout << "Failed to add new entry to exhibitions.\n";
+        return -1;
+    }
+
+    return new_record.getId();
+}
+
+int option_add_new_participation(SQLHDBC dbc) { 
+    
+    int animal_id, exhibition_id;
+    std::string reward;
+
+    animal_id = select_animal(dbc);
+    if (animal_id == -1) {
+        return -1;
+    } 
+
+    char enter = '?';
+
+    do {
+
+        exhibition_id = select_exhibition(dbc);
+        if (exhibition_id == -1) {
+            return -1;
+        }
+
+        Participation participation = Participation::find(dbc, animal_id, exhibition_id);
+
+        if (participation.getAnimalId() == animal_id && participation.getExhibitionId() == exhibition_id) {
+            std::cout << "Selected animal has already taken part in the selected exhibition.\n";
+            return -1;
+        }
+
+        std::cout << "Reward: ";
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        getline(std::cin, reward);
+
+        participation.setAnimalId(animal_id);
+        participation.setExhibitionId(exhibition_id);
+        participation.setReward(reward);
+
+        try {
+            participation.insert(dbc);
+            std::cout << "New entry added to participations.\n";
+        } catch (std::runtime_error const& e) {
+            std::cout << "Failed to add new entry to participations.\n";
+            return -1;
+        }
+
+        std::cout << "Do you want to add another exhibition? (y/n)\n> ";
+        std::cin >> enter;
+        if (!std::cin.good() || (enter != 'y' && enter != 'Y' && enter != 'n' && enter != 'N')) {
+            std::cout << "Wrong input.\n";
+            return -1;
+        }
+
+    } while (enter == 'Y' || enter == 'y');
+
+    return 0;
+}
+
+int option_add_new_participation(SQLHDBC dbc, int animal_id) { 
+    
+    int exhibition_id;
+    std::string reward;
+
+    char enter = '?';
+
+    do {
+
+        exhibition_id = select_exhibition(dbc);
+        if (exhibition_id == -1) {
+            return -1;
+        }
+
+        Participation participation = Participation::find(dbc, animal_id, exhibition_id);
+
+        if (participation.getAnimalId() == animal_id && participation.getExhibitionId() == exhibition_id) {
+            std::cout << "Selected animal has already taken part in the selected exhibition.\n";
+            return -1;
+        }
+
+        std::cout << "Reward: ";
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        getline(std::cin, reward);
+
+        participation.setAnimalId(animal_id);
+        participation.setExhibitionId(exhibition_id);
+        participation.setReward(reward);
+
+        try {
+            participation.insert(dbc);
+            std::cout << "New entry added to participations.\n";
+        } catch (std::runtime_error const& e) {
+            std::cout << "Failed to add new entry to participations.\n";
+            return -1;
+        }
+
+        std::cout << "Do you want to add another exhibition? (y/n)\n> ";
+        std::cin >> enter;
+        if (!std::cin.good() || (enter != 'y' && enter != 'Y' && enter != 'n' && enter != 'N')) {
+            std::cout << "Wrong input.\n";
+            return -1;
+        }
+
+    } while (enter == 'Y' || enter == 'y');
+
+    return 0;
 }
 
 int option_update_animal(SQLHDBC dbc) {
@@ -840,6 +992,73 @@ int option_update_request(SQLHDBC dbc) {
 
 }
 
+int option_update_exhibition(SQLHDBC dbc) { 
+
+    int exhibition_id = select_exhibition(dbc, false);
+    if (exhibition_id == -1) {
+        return -1;
+    }
+
+    Exhibition record = Exhibition::find(dbc, exhibition_id);
+
+    std::cout << "Select attribute to update:\n";
+    std::cout << "1. name\n";
+    std::cout << "2. address\n";
+    std::cout << "3. exhibition_date\n";
+    std::cout << "> ";
+
+    int option = -1;
+    std::cin >> option;
+
+    if (!std::cin.good() || option < 1 || option > 3) {
+        std::cout << "Wrong input.\n";
+        return -1;
+    }
+
+    std::string name;
+    std::string address;
+    int day, month, year;
+
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    
+    switch (option)
+    {
+    case 1:
+        std::cout << "New name: ";
+        getline(std::cin, name);
+        record.setName(name);
+        break;
+    case 2:
+        std::cout << "New address: ";
+        getline(std::cin, address);
+        record.setAddress(address);
+        break;
+    case 3:
+        if (select_date(&day, &month, &year) == -1) {
+            std::cout << "Wrong input.\n";
+            return -1;
+        }
+        record.setDay(day);
+        record.setMonth(month);
+        record.setYear(year);
+        break;
+    
+    default:
+        break;
+    }
+
+    try {
+        record.update(dbc);
+        std::cout << "Exhibition data updated\n";
+    } catch (std::runtime_error const& e) {
+        std::cout << "Failed to update exhibition data.\nError occured: " << e.what();
+        return -1;
+    }
+
+    return record.getId();
+
+}
+
 int option_remove_animal(SQLHDBC dbc) {
 
     int record_id = select_animal(dbc, false);
@@ -1022,6 +1241,25 @@ int option_remove_request(SQLHDBC dbc) {
     return 0;
 }
 
+int option_remove_exhibition(SQLHDBC dbc) {
+
+    int record_id = select_exhibition(dbc, false);
+    if (record_id == -1) {
+        return -1;
+    }
+
+    Exhibition exhibition = Exhibition::find(dbc, record_id);
+
+    try {
+        exhibition.remove(dbc);
+        std::cout << "Deleted succesfully.\n";
+    } catch (std::runtime_error const& e) {
+        std::cout << "Failed to delete entry.\nError occured: " << e.what() << "\n";
+    }
+
+    return 0;
+}
+
 int option_show_data(SQLHDBC dbc) {
 
     std::cout << "Select table:\n";
@@ -1067,7 +1305,10 @@ int option_show_data(SQLHDBC dbc) {
         records = Position::get_values(dbc);
         Position::display(dbc, records);
         break;
-    
+    case 6:
+        records = Exhibition::get_values(dbc);
+        Exhibition::display(dbc, records);
+        break;
     case 7:
         records = Request::get_values(dbc);
         Request::display(dbc, records);
@@ -1143,6 +1384,38 @@ int select_request(SQLHDBC dbc, bool addition) {
 
     return request_id;
 
+}
+
+int select_exhibition(SQLHDBC dbc, bool addition) { 
+    int exhibition_id;
+
+    std::cout << "Select exhibition:\n";
+    std::map<int, int> record_map = Exhibition::get_values(dbc);
+    Exhibition::display(dbc, record_map);
+    if (addition) std::cout << "or\n" << (int)(record_map.size())+1 << ". Add new exhibition\n";
+    std::cout << "> ";
+
+    int number;
+    std::cin >> number;
+
+    if (!std::cin.good()) {
+        std::cout << "Wrong input.\n";
+        return -1;
+    }
+    
+    // ключ найден
+    if (record_map.find(number) != record_map.end()) {
+        exhibition_id = record_map[number];
+    }
+    else if (addition && number == (int)(record_map.size())+1) {
+        exhibition_id = option_add_new_exhibition(dbc);
+    }
+    else {
+        std::cout << "Wrong input.\n";
+        return -1;
+    }
+
+    return exhibition_id;
 }
 
 int select_breed(SQLHDBC dbc, bool addition) {
@@ -1333,7 +1606,7 @@ int select_vet(SQLHDBC dbc, bool addition) {
 }
 
 int select_date(int* day, int* month, int* year) {
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
     std::cout << "Date [dd.mm.yyyy]: ";
     std::string date;
     getline(std::cin, date);
@@ -1341,6 +1614,7 @@ int select_date(int* day, int* month, int* year) {
     std::smatch match;
 
     if (!std::regex_match(date, match, dateRegex)) {
+        std::cout << "Date doesn't match regex.\n";
         return -1;
     }
 
@@ -1349,6 +1623,7 @@ int select_date(int* day, int* month, int* year) {
     int y = std::stoi(match.str(3));
 
     if (!isValidDate(d, m, y)) {
+        std::cout << "Date is not valid.\n";
         return -1;
     }
 
@@ -1378,15 +1653,4 @@ bool isValidDate(int day, int month, int year) {
     }
 
     return day <= daysInMonth;
-}
-
-void print_table_list() {
-    std::cout << "1. BREEDS\n";
-    std::cout << "2. CLIENTS\n";
-    std::cout << "3. EMPLOYEES\n";
-    std::cout << "4. ANIMALS\n";
-    std::cout << "5. EXHIBITIONS\n";
-    std::cout << "6. PEDIGREE\n";
-    std::cout << "7. PARTICIPATIONS\n";
-    std::cout << "8. REQUESTS\n";
 }

@@ -30,14 +30,14 @@ public:
     // getters
     int getId() const { return id; }
     std::string getLastName() const { return last_name; }
-    void setLastName(const std::string& n) { last_name = n; }
     std::string getFirstName() const { return first_name; }
+    std::string getPatronymic() const { return patronymic; }
+    std::string getAddress() const { return address; }
 
     // setters
+    void setLastName(const std::string& n) { last_name = n; }
     void setFirstName(const std::string& n) { first_name = n; }
-    std::string getPatronymic() const { return patronymic; }
     void setPatronymic(const std::string& p) { patronymic = p; }
-    std::string getAddress() const { return address; }
     void setAddress(const std::string& a) { address = a; }
 
 private:
