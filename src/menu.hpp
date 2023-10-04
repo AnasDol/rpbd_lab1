@@ -26,10 +26,17 @@ int option_add_new_position(SQLHDBC dbc);
 int option_add_new_request(SQLHDBC dbc);
 
 int option_update_animal(SQLHDBC dbc);
+int option_update_breed(SQLHDBC dbc);
+int option_update_client(SQLHDBC dbc);
+int option_update_employee(SQLHDBC dbc);
+int option_update_position(SQLHDBC dbc);
+
+int option_remove_breed(SQLHDBC dbc);
 
 int select_animal(SQLHDBC dbc, bool addition = true);
 int select_breed(SQLHDBC dbc, bool addition = true);
 int select_client(SQLHDBC dbc, bool addition = true);
+int select_employee(SQLHDBC dbc, bool addition = true);
 int select_position(SQLHDBC dbc, bool addition = true);
 int select_vet(SQLHDBC dbc, bool addition = true);
 std::string select_gender();

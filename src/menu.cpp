@@ -20,7 +20,13 @@ void start(SQLHDBC dbc) {
         std::cout << "10. Show data\n";
         std::cout << "\n";
         std::cout << "11. Update animal\n";
-        std::cout << "12. Delete information\n";
+        std::cout << "12. Update breed\n";
+        std::cout << "13. Update client\n";
+        std::cout << "14. Update employee\n";
+        std::cout << "15. Update position\n";
+        std::cout << "16. Update exhibition\n";
+        std::cout << "\n";
+        std::cout << "18. Delete breed\n";
         std::cout << "\n";
         std::cout << "-1. Exit\n";
         std::cout << "-------------------------------\n";
@@ -63,7 +69,23 @@ void proceed(SQLHDBC dbc, int option) {
     case 11:
         option_update_animal(dbc);
         break;
+    case 12:
+        option_update_breed(dbc);
+        break;
+    case 13:
+        option_update_client(dbc);
+        break;
+    case 14:
+        option_update_employee(dbc);
+        break;
+    case 15:
+        option_update_position(dbc);
+        break;
     
+    case 18:
+        option_remove_breed(dbc);
+        break;
+
     default:
         break;
     }
@@ -94,7 +116,7 @@ int option_add_new_animal(SQLHDBC dbc) {
     
     gender = select_gender();
 
-    breed_id = select_breed(dbc);
+    breed_id = select_position(dbc);
 
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     std::cout << "Appearance: ";
@@ -339,7 +361,7 @@ int option_add_new_request(SQLHDBC dbc) {
         return -1;
     }
 
-    breed_id = select_breed(dbc);
+    breed_id = select_position(dbc);
     if (breed_id == -1) {
         std::cout << "Wrong input.\n";
         return -1;
@@ -404,6 +426,8 @@ int option_update_animal(SQLHDBC dbc) {
     std::string appearance;
     int client_id;
     int vet_id;
+
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     
     switch (option)
     {
@@ -454,6 +478,273 @@ int option_update_animal(SQLHDBC dbc) {
     return record.getId();
 
 }
+
+int option_update_breed(SQLHDBC dbc) {
+
+    int breed_id = select_breed(dbc, false);
+    if (breed_id == -1) {
+        return -1;
+    }
+
+    Breed record = Breed::find(dbc, breed_id);
+
+    std::string name;
+
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    
+    std::cout << "New name: ";
+    getline(std::cin, name);
+    record.setName(name);
+        
+    try {
+        record.update(dbc);
+        std::cout << "Breed data updated\n";
+    } catch (std::runtime_error const& e) {
+        std::cout << "Failed to update breed data.\nError occured: " << e.what() << "\n";
+        return -1;
+    }
+
+    return record.getId();
+
+}
+
+int option_update_client(SQLHDBC dbc) {
+
+    int client_id = select_client(dbc, false);
+    if (client_id == -1) {
+        return -1;
+    }
+
+    Client record = Client::find(dbc, client_id);
+
+    std::cout << "Select attribute to update:\n";
+    std::cout << "1. last name\n";
+    std::cout << "2. first name\n";
+    std::cout << "3. patronymic\n";
+    std::cout << "4. address\n";
+    std::cout << "> ";
+
+    int option = -1;
+    std::cin >> option;
+
+    if (!std::cin.good() || option < 1 || option > 4) {
+        std::cout << "Wrong input.\n";
+        return -1;
+    }
+
+    std::string last_name;
+    std::string first_name;
+    std::string patronymic;
+    std::string address;
+
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    
+    switch (option)
+    {
+    case 1:
+        std::cout << "New last name: ";
+        getline(std::cin, last_name);
+        record.setLastName(last_name);
+        break;
+    case 2:
+        std::cout << "New first name: ";
+        getline(std::cin, first_name);
+        record.setFirstName(first_name);
+        break;
+    case 3:
+        std::cout << "New patronymic: ";
+        getline(std::cin, patronymic);
+        record.setPatronymic(patronymic);
+        break;
+    case 4:
+        std::cout << "New address: ";
+        getline(std::cin, address);
+        record.setAddress(address);
+        break;
+    
+    default:
+        break;
+    }
+
+    try {
+        record.update(dbc);
+        std::cout << "Client data updated\n";
+    } catch (std::runtime_error const& e) {
+        std::cout << "Failed to update client data.\nError occured: " << e.what();
+        return -1;
+    }
+
+    return record.getId();
+
+}
+
+int option_update_employee(SQLHDBC dbc) {
+
+    int employee_id = select_employee(dbc, false);
+    if (employee_id == -1) {
+        return -1;
+    }
+
+    Employee record = Employee::find(dbc, employee_id);
+
+    std::cout << "Select attribute to update:\n";
+    std::cout << "1. last name\n";
+    std::cout << "2. first name\n";
+    std::cout << "3. patronymic\n";
+    std::cout << "4. address\n";
+    std::cout << "5. position_id\n";
+    std::cout << "4. salary\n";
+    std::cout << "> ";
+
+    int option = -1;
+    std::cin >> option;
+
+    if (!std::cin.good() || option < 1 || option > 4) {
+        std::cout << "Wrong input.\n";
+        return -1;
+    }
+
+    std::string last_name;
+    std::string first_name;
+    std::string patronymic;
+    std::string address;
+    int position_id;
+    int salary;
+
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    
+    switch (option)
+    {
+    case 1:
+        std::cout << "New last name: ";
+        getline(std::cin, last_name);
+        record.setLastName(last_name);
+        break;
+    case 2:
+        std::cout << "New first name: ";
+        getline(std::cin, first_name);
+        record.setFirstName(first_name);
+        break;
+    case 3:
+        std::cout << "New patronymic: ";
+        getline(std::cin, patronymic);
+        record.setPatronymic(patronymic);
+        break;
+    case 4:
+        std::cout << "New address: ";
+        getline(std::cin, address);
+        record.setAddress(address);
+        break;
+    case 5:
+        position_id = select_position(dbc, false);
+        record.setPositionId(position_id);
+        break;
+    case 6:
+        std::cout << "New salary: ";
+        std::cin >> salary;
+        record.setSalary(salary);
+        break;
+    
+    default:
+        break;
+    }
+
+    try {
+        record.update(dbc);
+        std::cout << "Employee data updated\n";
+    } catch (std::runtime_error const& e) {
+        std::cout << "Failed to update employee data.\nError occured: " << e.what();
+        return -1;
+    }
+
+    return record.getId();
+
+}
+
+int option_update_position(SQLHDBC dbc) {
+
+    int position_id = select_position(dbc, false);
+    if (position_id == -1) {
+        return -1;
+    }
+
+    Position record = Position::find(dbc, position_id);
+
+    std::string name;
+
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    
+    std::cout << "New name: ";
+    getline(std::cin, name);
+    record.setName(name);
+        
+    try {
+        record.update(dbc);
+        std::cout << "Position data updated\n";
+    } catch (std::runtime_error const& e) {
+        std::cout << "Failed to update position data.\nError occured: " << e.what() << "\n";
+        return -1;
+    }
+
+    return record.getId();
+
+}
+
+int option_remove_breed(SQLHDBC dbc) {
+
+    int record_id = select_breed(dbc, false);
+    if (record_id == -1) {
+        return -1;
+    }
+
+    Breed breed = Breed::find(dbc, record_id);
+
+    std::map<int,int> animals = Animal::get_values(dbc, "breed_id", std::to_string(breed.getId()));
+    std::map<int,int> requests = Request::get_values(dbc, "breed_id", std::to_string(breed.getId()));
+
+    if (animals.size() > 0 || requests.size() > 0) {
+        std::cout << "Some other records depends on this breed. Run cascade delete? (y/n)\n> ";
+        char deletion = '?';
+        std::cin >> deletion;
+        if (!std::cin.good() || (deletion != 'y' && deletion != 'Y' && deletion != 'n' && deletion != 'N')) {
+            std::cout << "Wrong input.\n";
+            return -1;
+        }
+        if (deletion == 'n' || deletion == 'N') {
+            std::cout << "Deletion canceled.\n";
+            return 0;
+        }
+    }
+
+    try {
+        breed.remove(dbc);
+        std::cout << "Removed succesfully.\n";
+    } catch (std::runtime_error const& e) {
+        std::cout << "Failed to delete entry.\nError occured: " << e.what() << "\n";
+    }
+
+    return 0;
+}
+
+int option_remove_client(SQLHDBC dbc) {
+
+    int record_id = select_client(dbc, false);
+    if (record_id == -1) {
+        return -1;
+    }
+
+    Client record = Client::find(dbc, record_id);
+
+    try {
+        record.remove(dbc);
+        std::cout << "Removed succesfully.\n";
+    } catch (std::runtime_error const& e) {
+        std::cout << "Failed to delete entry.\nError occured: " << e.what() << "\n";
+    }
+
+    return 0;
+}
+
 
 int select_animal(SQLHDBC dbc, bool addition) {
     int animal_id;
@@ -551,6 +842,39 @@ int select_client(SQLHDBC dbc, bool addition) {
     }
 
     return client_id;
+}
+
+int select_employee(SQLHDBC dbc, bool addition) {
+
+    int employee_id;
+
+    std::cout << "Select employee:\n";
+    std::map<int, int> record_map = Employee::get_values(dbc);
+    Employee::display(dbc, record_map);
+    if (addition) std::cout << "or\n" << (int)(record_map.size())+1 << ". Add new employee\n";
+    std::cout << "> ";
+
+    int number;
+    std::cin >> number;
+
+    if (!std::cin.good()) {
+        std::cout << "Wrong input.\n";
+        return -1;
+    }
+    
+    // ключ найден
+    if (record_map.find(number) != record_map.end()) {
+        employee_id = record_map[number];
+    }
+    else if (addition && number == (int)(record_map.size())+1) {
+        employee_id = option_add_new_employee(dbc);
+    }
+    else {
+        std::cout << "Wrong input.\n";
+        return -1;
+    }
+
+    return employee_id;
 }
 
 int select_position(SQLHDBC dbc, bool addition) {
