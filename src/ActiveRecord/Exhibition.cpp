@@ -353,6 +353,62 @@ void Exhibition::display(SQLHDBC dbc, std::map<int, int> record_map) {
     
 }
 
+void Exhibition::display(SQLHDBC dbc, std::map<int, int> record_map, int animal_id) {
+    
+    std::cout << "  "
+              << std::setw(10) << "Id" 
+              << std::setw(20) << "Name" 
+              << std::setw(40) << "Address"
+              << std::setw(20) << "Exhibition date" 
+              << std::setw(20) << "Reward" 
+              << std::endl;
+
+    for (const auto& [order, id] : record_map) {
+
+        SQLHSTMT hstmt;
+        SQLRETURN retcode;
+
+        retcode = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &hstmt);
+
+        if (retcode != SQL_SUCCESS && retcode != SQL_SUCCESS_WITH_INFO) {
+            std::cout << "Failed to allocate handle." << std::endl;
+            return;
+        }
+
+        std::string query = "select exhibitions.id, exhibitions.name, exhibitions.address, exhibitions.exhibition_date, participations.reward from exhibitions inner join participations on participations.exhibition_id = exhibitions.id where participations.animal_id = " + std::to_string(animal_id) + "and exhibitions.id = " + std::to_string(id);
+
+        retcode = SQLExecDirect(hstmt, (SQLCHAR*)(query.c_str()), SQL_NTS);
+
+        if (retcode != SQL_SUCCESS && retcode != SQL_SUCCESS_WITH_INFO) {
+            std::cout << "Failed to execute query." << std::endl;
+            continue;
+        }
+
+        while (SQLFetch(hstmt) == SQL_SUCCESS) {
+
+            SQLINTEGER id;
+            SQLCHAR name[64], address[64], exhibition_date[64], reward[64];
+
+            SQLGetData(hstmt, 1, SQL_C_LONG, &id, 0, nullptr);
+            SQLGetData(hstmt, 2, SQL_C_CHAR, &name, sizeof(name), nullptr);
+            SQLGetData(hstmt, 3, SQL_C_CHAR, &address, sizeof(address), nullptr);
+            SQLGetData(hstmt, 4, SQL_C_CHAR, &exhibition_date, sizeof(exhibition_date), nullptr);
+            SQLGetData(hstmt, 5, SQL_C_CHAR, &reward, sizeof(reward), nullptr);
+
+            std::cout << order << "."
+                << std::setw(10) << id
+                << std::setw(20) << name
+                << std::setw(40) << address
+                << std::setw(20) << exhibition_date
+                << std::setw(20) << reward
+                << std::endl;
+        }   
+
+        SQLFreeHandle(SQL_HANDLE_STMT, hstmt);       
+    }
+    
+}
+
 std::string Exhibition::getDate() const {
     std::string dayStr = std::to_string(day);
     std::string monthStr = std::to_string(month);

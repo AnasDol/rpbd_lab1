@@ -37,6 +37,7 @@ int option_update_employee(SQLHDBC dbc);
 int option_update_position(SQLHDBC dbc);
 int option_update_request(SQLHDBC dbc);
 int option_update_exhibition(SQLHDBC dbc);
+int option_update_participation(SQLHDBC dbc);
 
 int option_remove_animal(SQLHDBC dbc);
 int option_remove_breed(SQLHDBC dbc);
@@ -45,6 +46,7 @@ int option_remove_employee(SQLHDBC dbc);
 int option_remove_position(SQLHDBC dbc);
 int option_remove_request(SQLHDBC dbc);
 int option_remove_exhibition(SQLHDBC dbc);
+int option_remove_participation(SQLHDBC dbc);
 
 int option_show_data(SQLHDBC dbc);
 

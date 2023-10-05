@@ -39,6 +39,9 @@ void start(SQLHDBC dbc) {
         std::cout << "26. Delete exhibition\n";
         std::cout << "27. Delete request\n";
         std::cout << "\n";
+        std::cout << "28. Delete data on the participation of animals in exhibitions\n";
+        std::cout << "29. Delete pedigree information\n";
+        std::cout << "\n";
         std::cout << "-1. Exit\n";
         std::cout << "-------------------------------\n";
         std::cout << "\n> ";
@@ -108,6 +111,9 @@ void proceed(SQLHDBC dbc, int option) {
     case 17:
         option_update_request(dbc);
         break;
+    case 18:
+        option_update_participation(dbc);
+        break;
     
     case 21:
         option_remove_animal(dbc);
@@ -129,6 +135,9 @@ void proceed(SQLHDBC dbc, int option) {
         break;
     case 27:
         option_remove_request(dbc);
+        break;
+     case 28:
+        option_remove_participation(dbc);
         break;
 
     default:
@@ -1059,6 +1068,62 @@ int option_update_exhibition(SQLHDBC dbc) {
 
 }
 
+int option_update_participation(SQLHDBC dbc) { 
+    
+    int animal_id;
+    std::string reward;
+
+    animal_id = select_animal(dbc, false);
+    if (animal_id == -1) {
+        return -1;
+    }
+
+    std::map<int, pair> participations = Participation::get_values(dbc, "animal_id", std::to_string(animal_id));
+
+    std::map<int, int> exhibitions;
+
+    for (const auto& [order, p] : participations) {
+        exhibitions.insert({order, p.exhibition_id});
+    }
+
+    std::cout << "Select exhibition to update reward:\n";
+    Exhibition::display(dbc, exhibitions, animal_id);
+    std::cout << "> ";
+
+    int option;
+    std::cin >> option;
+
+    if (!std::cin.good()) {
+        std::cout << "Wrong input.\n";
+        return -1;
+    }
+
+    int exhibition_id = exhibitions[option];
+
+    Exhibition ex = Exhibition::find(dbc, exhibition_id);
+    if (ex.getId() == 0) {
+        std::cout << "Wrong input.\n";
+        return -1;
+    }
+    std::cout << "New reward: ";
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    getline(std::cin, reward);
+
+    Participation record = Participation::find(dbc, animal_id, exhibition_id);
+    record.setReward(reward);
+
+    try {
+        record.update(dbc);
+        std::cout << "Participation data updated\n";
+    } catch (std::runtime_error const& e) {
+        std::cout << "Failed to update participation data.\nError occured: " << e.what();
+        return -1;
+    }
+
+    return 0;
+
+}
+
 int option_remove_animal(SQLHDBC dbc) {
 
     int record_id = select_animal(dbc, false);
@@ -1260,18 +1325,67 @@ int option_remove_exhibition(SQLHDBC dbc) {
     return 0;
 }
 
+int option_remove_participation(SQLHDBC dbc) {
+
+    int animal_id;
+
+    animal_id = select_animal(dbc, false);
+    if (animal_id == -1) {
+        return -1;
+    }
+
+    std::map<int, pair> participations = Participation::get_values(dbc, "animal_id", std::to_string(animal_id));
+
+    std::map<int, int> exhibitions;
+
+    for (const auto& [order, p] : participations) {
+        exhibitions.insert({order, p.exhibition_id});
+    }
+
+    std::cout << "Select exhibition to delete:\n";
+    Exhibition::display(dbc, exhibitions, animal_id);
+    std::cout << "> ";
+
+    int option;
+    std::cin >> option;
+
+    if (!std::cin.good()) {
+        std::cout << "Wrong input.\n";
+        return -1;
+    }
+
+    int exhibition_id = exhibitions[option];
+
+    Exhibition ex = Exhibition::find(dbc, exhibition_id);
+    if (ex.getId() == 0) {
+        std::cout << "Wrong input.\n";
+        return -1;
+    }
+
+    Participation record = Participation::find(dbc, animal_id, exhibition_id);
+
+    try {
+        record.remove(dbc);
+        std::cout << "Deleted succesfully.\n";
+    } catch (std::runtime_error const& e) {
+        std::cout << "Failed to delete entry.\nError occured: " << e.what() << "\n";
+    }
+
+    return 0;
+}
+
 int option_show_data(SQLHDBC dbc) {
 
-    std::cout << "Select table:\n";
-    std::cout << "1. ANIMALS\n";
-    std::cout << "2. BREEDS\n";
-    std::cout << "3. CLIENTS\n";
-    std::cout << "4. EMPLOYEES\n";
-    std::cout << "5. POSITIONS\n";
-    std::cout << "6. EXHIBITIONS\n";
-    std::cout << "7. REQUESTS\n";
-    std::cout << "8. PEDIGREE\n";
-    std::cout << "9. PARTICIPATIONS\n";
+    std::cout << "Select option:\n";
+    std::cout << "1. Show ANIMALS\n";
+    std::cout << "2. Show BREEDS\n";
+    std::cout << "3. Show CLIENTS\n";
+    std::cout << "4. Show EMPLOYEES\n";
+    std::cout << "5. Show POSITIONS\n";
+    std::cout << "6. Show EXHIBITIONS\n";
+    std::cout << "7. Show REQUESTS\n";
+    std::cout << "8. Show PEDIGREE of selected animal\n";
+    std::cout << "9. Show PARTICIPATIONS of selected animal\n";
     std::cout << "> ";
 
     int option;
@@ -1312,6 +1426,20 @@ int option_show_data(SQLHDBC dbc) {
     case 7:
         records = Request::get_values(dbc);
         Request::display(dbc, records);
+        break;
+    case 8:
+    {
+        int animal_id = select_animal(dbc);
+        if (animal_id == -1) {
+            return -1;
+        }
+        std::map<int, pair> participations = Participation::get_values(dbc, "animal_id", std::to_string(animal_id));
+        std::map<int, int> records;
+        for (const auto& [order, p] : participations) {
+            records.insert({order, p.exhibition_id});
+        }
+        Exhibition::display(dbc, records, animal_id);
+    }
         break;
     
     default:

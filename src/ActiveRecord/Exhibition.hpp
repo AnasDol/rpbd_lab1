@@ -26,6 +26,7 @@ public:
     static std::map<int, int> get_values(SQLHDBC dbc);
     static std::map<int, int> get_values(SQLHDBC dbc, std::string attribute, std::string value);
     static void display(SQLHDBC dbc, std::map<int, int> record_map);
+    static void display(SQLHDBC dbc, std::map<int, int> record_map, int animal_id);
 
     // getters
     int getId() const { return id; }
