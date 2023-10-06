@@ -10,13 +10,6 @@
 #include <map>
 #include "../connection.hpp"
 
-struct pair {
-    int animal_id;
-    int exhibition_id;
-
-    pair(int aid, int eid) : animal_id(aid), exhibition_id(eid) {}
-};
-
 class Participation {
 public:
 

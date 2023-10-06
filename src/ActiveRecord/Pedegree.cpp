@@ -301,7 +301,7 @@ void Pedigree::display(SQLHDBC dbc, std::map<int, pair> record_map) {
             return;
         }
 
-        std::string query = "SELECT * FROM " + table_name + " WHERE parent_id = " + std::to_string(p.parent_id) + " AND child_id = " + std::to_string(p.child_id);
+        std::string query = "SELECT * FROM " + table_name + " WHERE parent_id = " + std::to_string(p.first) + " AND child_id = " + std::to_string(p.second);
 
         retcode = SQLExecDirect(hstmt, (SQLCHAR*)(query.c_str()), SQL_NTS);
 
@@ -313,8 +313,8 @@ void Pedigree::display(SQLHDBC dbc, std::map<int, pair> record_map) {
         while (SQLFetch(hstmt) == SQL_SUCCESS) {
 
             std::cout << order << "."
-                << std::setw(20) << p.parent_id
-                << std::setw(20) << p.child_id
+                << std::setw(20) << p.first
+                << std::setw(20) << p.second
                 << std::endl;
         }   
 

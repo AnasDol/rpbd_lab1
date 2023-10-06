@@ -331,7 +331,7 @@ void Participation::display(SQLHDBC dbc, std::map<int, pair> record_map) {
             return;
         }
 
-        std::string query = "SELECT * FROM " + table_name + " WHERE animal_id = " + std::to_string(p.animal_id) + " AND exhibition_id = " + std::to_string(p.exhibition_id);
+        std::string query = "SELECT * FROM " + table_name + " WHERE animal_id = " + std::to_string(p.first) + " AND exhibition_id = " + std::to_string(p.second);
 
         retcode = SQLExecDirect(hstmt, (SQLCHAR*)(query.c_str()), SQL_NTS);
 
@@ -347,8 +347,8 @@ void Participation::display(SQLHDBC dbc, std::map<int, pair> record_map) {
             SQLGetData(hstmt, 4, SQL_C_CHAR, &reward, sizeof(reward), nullptr);
 
             std::cout << order << "."
-                << std::setw(20) << p.animal_id
-                << std::setw(20) << p.exhibition_id
+                << std::setw(20) << p.first
+                << std::setw(20) << p.second
                 << std::setw(20) << reward
                 << std::endl;
         }   

@@ -13,8 +13,7 @@
 #include "ActiveRecord/Request.hpp"
 #include "ActiveRecord/Exhibition.hpp"
 #include "ActiveRecord/Participation.hpp"
-
-//enum class Table {BREEDS, CLIENTS, EMPLOYEES, ANIMALS, EXHIBITIONS, PEDIGREE, PARTICIPATIONS, REQUESTS};
+#include "ActiveRecord/Pedigree.hpp"
 
 void start(SQLHDBC dbc);
 void proceed(SQLHDBC dbc, int option);
@@ -30,6 +29,8 @@ int option_add_new_exhibition(SQLHDBC dbc);
 int option_add_new_participation(SQLHDBC dbc);
 int option_add_new_participation(SQLHDBC dbc, int animal_id);
 
+int option_add_new_pedigree_info(SQLHDBC dbc);
+
 int option_update_animal(SQLHDBC dbc);
 int option_update_breed(SQLHDBC dbc);
 int option_update_client(SQLHDBC dbc);
@@ -38,6 +39,8 @@ int option_update_position(SQLHDBC dbc);
 int option_update_request(SQLHDBC dbc);
 int option_update_exhibition(SQLHDBC dbc);
 int option_update_participation(SQLHDBC dbc);
+
+int option_update_pedigree_info(SQLHDBC dbc);
 
 int option_remove_animal(SQLHDBC dbc);
 int option_remove_breed(SQLHDBC dbc);
@@ -48,9 +51,13 @@ int option_remove_request(SQLHDBC dbc);
 int option_remove_exhibition(SQLHDBC dbc);
 int option_remove_participation(SQLHDBC dbc);
 
+int option_remove_pedigree_info(SQLHDBC dbc);
+
 int option_show_data(SQLHDBC dbc);
+int option_show_pedigree_info(SQLHDBC dbc);
 
 int select_animal(SQLHDBC dbc, bool addition = true);
+int select_animal(SQLHDBC dbc, std::string gender, bool addition = true);
 int select_breed(SQLHDBC dbc, bool addition = true);
 int select_client(SQLHDBC dbc, bool addition = true);
 int select_employee(SQLHDBC dbc, bool addition = true);

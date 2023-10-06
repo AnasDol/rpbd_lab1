@@ -8,6 +8,13 @@
 #include <iomanip>
 #include <list>
 
+struct pair {
+    int first;
+    int second;
+
+    pair(int f, int s) : first(f), second(s) {}
+};
+
 #define ODBC_ERROR_MSG_SIZE 1024
 
 void show_error(SQLHANDLE handle, SQLSMALLINT handle_type);

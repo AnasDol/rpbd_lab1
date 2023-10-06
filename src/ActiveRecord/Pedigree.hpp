@@ -9,13 +9,7 @@
 #include <iomanip>
 #include <map>
 #include "../connection.hpp"
-
-struct pair {
-    int parent_id;
-    int child_id;
-
-    pair(int pid, int cid) : parent_id(pid), child_id(cid) {}
-};
+#include "Animal.hpp"
 
 class Pedigree {
 public:
@@ -44,7 +38,7 @@ public:
 
 private:
 
-    static inline const std::string table_name {"pedigrees"};
+    static inline const std::string table_name {"pedigree"};
 
     int parent_id;
     int child_id;

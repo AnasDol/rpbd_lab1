@@ -32,7 +32,7 @@ int main() {
 
     start(dbc);
 
-   // option_update_participation(dbc);
+    //option_add_new_pedigree_info(dbc);
  
     disconnect_from_db(env, dbc);
 

@@ -89,6 +89,9 @@ void proceed(SQLHDBC dbc, int option) {
     case 8:
         option_add_new_participation(dbc);
         break;
+    case 9:
+        option_add_new_pedigree_info(dbc);
+        break;
 
     case 11:
         option_update_animal(dbc);
@@ -114,6 +117,9 @@ void proceed(SQLHDBC dbc, int option) {
     case 18:
         option_update_participation(dbc);
         break;
+    case 19:
+        option_update_pedigree_info(dbc);
+        break;
     
     case 21:
         option_remove_animal(dbc);
@@ -136,9 +142,13 @@ void proceed(SQLHDBC dbc, int option) {
     case 27:
         option_remove_request(dbc);
         break;
-     case 28:
+    case 28:
         option_remove_participation(dbc);
         break;
+    case 29:
+        option_remove_pedigree_info(dbc);
+        break;
+    
 
     default:
         break;
@@ -163,7 +173,7 @@ int option_add_new_animal(SQLHDBC dbc) {
     std::cout << "Age: ";
     std::cin >> age;
 
-    if (!std::cin.good()) {
+    if (!std::cin.good() || age < 0) {
         std::cout << "Wrong input.\n";
         return -1;
     }
@@ -216,7 +226,7 @@ int option_add_new_animal(SQLHDBC dbc) {
     std::cin >> enter;
     if (!std::cin.good() || (enter != 'y' && enter != 'Y' && enter != 'n' && enter != 'N')) {
         std::cout << "Wrong input.\n";
-    } else {
+    } else if (enter == 'y' || enter == 'Y') {
         option_add_new_participation(dbc, new_record.getId());
     }
 
@@ -436,7 +446,7 @@ int option_add_new_request(SQLHDBC dbc) {
         return -1;
     }
 
-    breed_id = select_position(dbc);
+    breed_id = select_breed(dbc);
     if (breed_id == -1) {
         std::cout << "Wrong input.\n";
         return -1;
@@ -448,6 +458,7 @@ int option_add_new_request(SQLHDBC dbc) {
         return -1;
     }
 
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     if (select_date(&day, &month, &year) == -1) {
         std::cout << "Wrong input.\n";
         return -1;
@@ -598,6 +609,260 @@ int option_add_new_participation(SQLHDBC dbc, int animal_id) {
     } while (enter == 'Y' || enter == 'y');
 
     return 0;
+}
+
+int option_add_new_pedigree_info(SQLHDBC dbc) {
+
+    int animal_id;
+
+    animal_id = select_animal(dbc);
+    if (animal_id == -1) {
+        return -1;
+    } 
+
+    std::cout << "Pedigree:\n";
+
+    std::map<int, pair> pedigree_parents = Pedigree::get_values(dbc, "child_id", std::to_string(animal_id));
+    if (pedigree_parents.size() == 0) std::cout << "Empty.\n";
+    Animal mother, father, mother_mother, mother_father, father_mother, father_father, current;
+
+    for (const auto& [order, p] : pedigree_parents) {
+        current = Animal::find(dbc, p.first);
+        if (current.getGender() == "male") {
+            father = current;
+            std::cout << "Father: " << father.getName() << "\n";
+            std::map<int, pair> pedigree_father_parents = Pedigree::get_values(dbc, "child_id", std::to_string(father.getId()));
+            for (const auto& [order, p] : pedigree_father_parents) {
+                current = Animal::find(dbc, p.first);
+                if (current.getGender() == "male") {
+                    father_father = current;
+                    std::cout << "  Grand father: " << father_father.getName() << "\n";
+                }
+                else if (current.getGender() == "female") {
+                    father_mother = current;
+                    std::cout << "  Grand mother: " << father_mother.getName() << "\n";
+                }
+            }
+        }
+        else if (current.getGender() == "female") {
+            mother = current;
+            std::cout << "Mother: " << mother.getName() << "\n";
+            std::map<int, pair> pedigree_mother_parents = Pedigree::get_values(dbc, "child_id", std::to_string(mother.getId()));
+            for (const auto& [order, p] : pedigree_mother_parents) {
+                current = Animal::find(dbc, p.first);
+                if (current.getGender() == "male") {
+                    mother_father = current;
+                    std::cout << "  Grand father: " << mother_father.getName() << "\n";
+                }
+                else if (current.getGender() == "female") {
+                    mother_mother = current;
+                    std::cout << "  Grand mother: " << mother_mother.getName() << "\n";
+                }
+            }
+        }
+    }
+
+    int option;
+
+    if (mother.getId() == 0) {
+        std::cout  << "1. Select mother\n";
+    }
+    if (mother.getId() != 0 && mother_mother.getId() == 0) {
+        std::cout << "  11. Select grandmother\n";
+    }
+    if (mother.getId() != 0 && mother_father.getId() == 0) {
+        std::cout << "  12. Select grandfather\n";
+    }
+    if (father.getId() == 0) {
+        std::cout  << "2. Select father\n";
+    }
+    if (father.getId() != 0 && father_mother.getId() == 0) {
+        std::cout << "  21. Select grandmother\n";
+    }
+    if (father.getId() != 0 && father_father.getId() == 0) {
+        std::cout << "  22. Select grandfather\n";
+    }
+    std::cout << "> ";
+
+    std::cin >> option;
+
+    if (!std::cin.good()) {
+        std::cout << "Wrong input.\n";
+        return -1;
+    }
+
+    Pedigree new_record;
+
+    int parent_id, child_id;
+
+    switch (option)
+    {
+    case 1:
+        if (mother.getId() == 0) {
+            parent_id = select_animal(dbc, "female", false);
+            if (parent_id == -1) {
+                std::cout << "Wrong input.\n";
+                return -1;
+            }
+            child_id = animal_id;
+        } else {
+            std::cout << "Wrong input.\n";
+            return -1;
+        }
+        break;
+    
+    case 11:
+        if (mother.getId() != 0 && mother_mother.getId() == 0) {
+            parent_id = select_animal(dbc, "female", false);
+            if (parent_id == -1) {
+                std::cout << "Wrong input.\n";
+                return -1;
+            }
+            parent_id = animal_id;
+            child_id = mother.getId();
+        } else {
+            std::cout << "Wrong input.\n";
+            return -1;
+        }
+        break;
+
+    case 12:
+        if (mother.getId() != 0 && mother_father.getId() == 0) {
+            parent_id = select_animal(dbc, "male", false);
+            if (parent_id == -1) {
+                std::cout << "Wrong input.\n";
+                return -1;
+            }
+            parent_id = animal_id;
+            child_id = mother.getId();
+            
+        } else {
+            std::cout << "Wrong input.\n";
+            return -1;
+        }
+        break;
+
+    case 2:
+        if (father.getId() == 0) {
+            parent_id = select_animal(dbc, "male", false);
+            if (parent_id == -1) {
+                std::cout << "Wrong input.\n";
+                return -1;
+            }
+            child_id = animal_id;
+        } else {
+            std::cout << "Wrong input.\n";
+            return -1;
+        }
+        break;
+    
+    case 21:
+        if (father.getId() != 0 && father_mother.getId() == 0) {
+            parent_id = select_animal(dbc, "female", false);
+            if (parent_id == -1) {
+                std::cout << "Wrong input.\n";
+                return -1;
+            }
+            parent_id = animal_id;
+            child_id = father.getId();
+        } else {
+            std::cout << "Wrong input.\n";
+            return -1;
+        }
+        break;
+
+    case 22:
+        if (father.getId() != 0 && father_father.getId() == 0) {
+            parent_id = select_animal(dbc, "male", false);
+            if (parent_id == -1) {
+                std::cout << "Wrong input.\n";
+                return -1;
+            }
+            parent_id = animal_id;
+            child_id = father.getId();
+        } else {
+            std::cout << "Wrong input.\n";
+            return -1;
+        }
+        break;
+
+    default:
+        break;
+    }
+
+    if (parent_id == child_id) {
+        std::cout << "Wrong input. Animal cannot be its own parent.\n";
+        return -1;
+    }
+
+    new_record.setParentId(parent_id);
+    new_record.setChildId(child_id);
+    try {
+        new_record.insert(dbc);
+        std::cout << "New entry added to pedigree.\n";
+    } catch (std::runtime_error const& e) {
+        std::cout << "Failed to add new entry to pedigree.\n";
+        return -1;
+    } 
+
+
+    return 0;
+
+}
+
+int option_show_pedigree_info(SQLHDBC dbc) { 
+    
+    int animal_id;
+
+    animal_id = select_animal(dbc);
+    if (animal_id == -1) {
+        return -1;
+    } 
+
+    std::cout << "Pedigree:\n";
+
+    std::map<int, pair> pedigree_parents = Pedigree::get_values(dbc, "child_id", std::to_string(animal_id));
+    if (pedigree_parents.size() == 0) std::cout << "Empty.\n";
+    Animal mother, father, mother_mother, mother_father, father_mother, father_father, current;
+
+    for (const auto& [order, p] : pedigree_parents) {
+        current = Animal::find(dbc, p.first);
+        if (current.getGender() == "male") {
+            father = current;
+            std::cout << "Father: " << father.getName() << "\n";
+            std::map<int, pair> pedigree_father_parents = Pedigree::get_values(dbc, "child_id", std::to_string(father.getId()));
+            for (const auto& [order, p] : pedigree_father_parents) {
+                current = Animal::find(dbc, p.first);
+                if (current.getGender() == "male") {
+                    father_father = current;
+                    std::cout << "  Grand father: " << father_father.getName() << "\n";
+                }
+                else if (current.getGender() == "female") {
+                    father_mother = current;
+                    std::cout << "  Grand mother: " << father_mother.getName() << "\n";
+                }
+            }
+        }
+        else if (current.getGender() == "female") {
+            mother = current;
+            std::cout << "Mother: " << mother.getName() << "\n";
+            std::map<int, pair> pedigree_mother_parents = Pedigree::get_values(dbc, "child_id", std::to_string(mother.getId()));
+            for (const auto& [order, p] : pedigree_mother_parents) {
+                current = Animal::find(dbc, p.first);
+                if (current.getGender() == "male") {
+                    mother_father = current;
+                    std::cout << "  Grand father: " << mother_father.getName() << "\n";
+                }
+                else if (current.getGender() == "female") {
+                    mother_mother = current;
+                    std::cout << "  Grand mother: " << mother_mother.getName() << "\n";
+                }
+            }
+        }
+    }
+
+    return 0;
+
 }
 
 int option_update_animal(SQLHDBC dbc) {
@@ -1083,7 +1348,7 @@ int option_update_participation(SQLHDBC dbc) {
     std::map<int, int> exhibitions;
 
     for (const auto& [order, p] : participations) {
-        exhibitions.insert({order, p.exhibition_id});
+        exhibitions.insert({order, p.second});
     }
 
     std::cout << "Select exhibition to update reward:\n";
@@ -1123,6 +1388,200 @@ int option_update_participation(SQLHDBC dbc) {
     return 0;
 
 }
+
+int option_update_pedigree_info(SQLHDBC dbc) { 
+    int animal_id;
+
+    animal_id = select_animal(dbc);
+    if (animal_id == -1) {
+        return -1;
+    } 
+
+    std::cout << "Pedigree:\n";
+
+    std::map<int, pair> pedigree_parents = Pedigree::get_values(dbc, "child_id", std::to_string(animal_id));
+    if (pedigree_parents.size() == 0) std::cout << "Empty.\n";
+    Animal mother, father, mother_mother, mother_father, father_mother, father_father, current;
+
+    for (const auto& [order, p] : pedigree_parents) {
+        current = Animal::find(dbc, p.first);
+        if (current.getGender() == "male") {
+            father = current;
+            std::cout << "Father: " << father.getName() << "\n";
+            std::map<int, pair> pedigree_father_parents = Pedigree::get_values(dbc, "child_id", std::to_string(father.getId()));
+            for (const auto& [order, p] : pedigree_father_parents) {
+                current = Animal::find(dbc, p.first);
+                if (current.getGender() == "male") {
+                    father_father = current;
+                    std::cout << "  Grand father: " << father_father.getName() << "\n";
+                }
+                else if (current.getGender() == "female") {
+                    father_mother = current;
+                    std::cout << "  Grand mother: " << father_mother.getName() << "\n";
+                }
+            }
+        }
+        else if (current.getGender() == "female") {
+            mother = current;
+            std::cout << "Mother: " << mother.getName() << "\n";
+            std::map<int, pair> pedigree_mother_parents = Pedigree::get_values(dbc, "child_id", std::to_string(mother.getId()));
+            for (const auto& [order, p] : pedigree_mother_parents) {
+                current = Animal::find(dbc, p.first);
+                if (current.getGender() == "male") {
+                    mother_father = current;
+                    std::cout << "  Grand father: " << mother_father.getName() << "\n";
+                }
+                else if (current.getGender() == "female") {
+                    mother_mother = current;
+                    std::cout << "  Grand mother: " << mother_mother.getName() << "\n";
+                }
+            }
+        }
+    }
+
+    int option;
+
+    if (mother.getId() != 0) {
+        std::cout  << "1. Update mother\n";
+    }
+    if (mother_mother.getId() != 0) {
+        std::cout << "  11. Update grandmother\n";
+    }
+    if (mother_father.getId() != 0) {
+        std::cout << "  12. Update grandfather\n";
+    }
+    if (father.getId() != 0) {
+        std::cout  << "2. Update father\n";
+    }
+    if (father_mother.getId() != 0) {
+        std::cout << "  21. Update grandmother\n";
+    }
+    if (father_father.getId() != 0) {
+        std::cout << "  22. Update grandfather\n";
+    }
+    std::cout << "> ";
+
+    std::cin >> option;
+
+    if (!std::cin.good()) {
+        std::cout << "Wrong input.\n";
+        return -1;
+    }
+
+    Pedigree record;
+
+    int parent_id, child_id;
+
+    switch (option)
+    {
+    case 1:
+        if (mother.getId() != 0) {
+            parent_id = select_animal(dbc, "female", true);
+            if (parent_id == -1) {
+                std::cout << "Wrong input.\n";
+                return -1;
+            }
+            child_id = animal_id;
+        } else {
+            std::cout << "Wrong input.\n";
+            return -1;
+        }
+        break;
+    
+    case 11:
+        if (mother_mother.getId() != 0) {
+            parent_id = select_animal(dbc, "female", true);
+            if (parent_id == -1) {
+                std::cout << "Wrong input.\n";
+                return -1;
+            }
+            child_id = mother.getId();
+        } else {
+            std::cout << "Wrong input.\n";
+            return -1;
+        }
+        break;
+
+    case 12:
+        if (mother_father.getId() != 0) {
+            parent_id = select_animal(dbc, "male", true);
+            if (parent_id == -1) {
+                std::cout << "Wrong input.\n";
+                return -1;
+            }
+            child_id = mother.getId();
+            
+        } else {
+            std::cout << "Wrong input.\n";
+            return -1;
+        }
+        break;
+
+    case 2:
+        if (father.getId() != 0) {
+            parent_id = select_animal(dbc, "male", true);
+            if (parent_id == -1) {
+                std::cout << "Wrong input.\n";
+                return -1;
+            }
+            child_id = animal_id;
+        } else {
+            std::cout << "Wrong input.\n";
+            return -1;
+        }
+        break;
+    
+    case 21:
+        if (father_mother.getId() != 0) {
+            parent_id = select_animal(dbc, "female", true);
+            if (parent_id == -1) {
+                std::cout << "Wrong input.\n";
+                return -1;
+            }
+            child_id = father.getId();
+        } else {
+            std::cout << "Wrong input.\n";
+            return -1;
+        }
+        break;
+
+    case 22:
+        if (father_father.getId() != 0) {
+            parent_id = select_animal(dbc, "male", true);
+            if (parent_id == -1) {
+                std::cout << "Wrong input.\n";
+                return -1;
+            }
+            child_id = father.getId();
+        } else {
+            std::cout << "Wrong input.\n";
+            return -1;
+        }
+        break;
+
+    default:
+        break;
+    }
+
+    if (parent_id == child_id) {
+        std::cout << "Wrong input. Animal cannot be its own parent.\n";
+        return -1;
+    }
+
+    record.setParentId(parent_id);
+    record.setChildId(child_id);
+    try {
+        record.update(dbc);
+        std::cout << "Pedigree data updated\n";
+    } catch (std::runtime_error const& e) {
+        std::cout << "Failed to update pedigree data.\nError occured: " << e.what();
+        return -1;
+    }
+
+
+    return 0;
+
+ }
 
 int option_remove_animal(SQLHDBC dbc) {
 
@@ -1339,7 +1798,7 @@ int option_remove_participation(SQLHDBC dbc) {
     std::map<int, int> exhibitions;
 
     for (const auto& [order, p] : participations) {
-        exhibitions.insert({order, p.exhibition_id});
+        exhibitions.insert({order, p.second});
     }
 
     std::cout << "Select exhibition to delete:\n";
@@ -1374,6 +1833,169 @@ int option_remove_participation(SQLHDBC dbc) {
     return 0;
 }
 
+int option_remove_pedigree_info(SQLHDBC dbc) { 
+
+    int animal_id;
+
+    animal_id = select_animal(dbc);
+    if (animal_id == -1) {
+        return -1;
+    } 
+
+    std::cout << "Pedigree:\n";
+
+    std::map<int, pair> pedigree_parents = Pedigree::get_values(dbc, "child_id", std::to_string(animal_id));
+    if (pedigree_parents.size() == 0) std::cout << "Empty.\n";
+    Animal mother, father, mother_mother, mother_father, father_mother, father_father, current;
+
+    for (const auto& [order, p] : pedigree_parents) {
+        current = Animal::find(dbc, p.first);
+        if (current.getGender() == "male") {
+            father = current;
+            std::cout << "Father: " << father.getName() << "\n";
+            std::map<int, pair> pedigree_father_parents = Pedigree::get_values(dbc, "child_id", std::to_string(father.getId()));
+            for (const auto& [order, p] : pedigree_father_parents) {
+                current = Animal::find(dbc, p.first);
+                if (current.getGender() == "male") {
+                    father_father = current;
+                    std::cout << "  Grand father: " << father_father.getName() << "\n";
+                }
+                else if (current.getGender() == "female") {
+                    father_mother = current;
+                    std::cout << "  Grand mother: " << father_mother.getName() << "\n";
+                }
+            }
+        }
+        else if (current.getGender() == "female") {
+            mother = current;
+            std::cout << "Mother: " << mother.getName() << "\n";
+            std::map<int, pair> pedigree_mother_parents = Pedigree::get_values(dbc, "child_id", std::to_string(mother.getId()));
+            for (const auto& [order, p] : pedigree_mother_parents) {
+                current = Animal::find(dbc, p.first);
+                if (current.getGender() == "male") {
+                    mother_father = current;
+                    std::cout << "  Grand father: " << mother_father.getName() << "\n";
+                }
+                else if (current.getGender() == "female") {
+                    mother_mother = current;
+                    std::cout << "  Grand mother: " << mother_mother.getName() << "\n";
+                }
+            }
+        }
+    }
+
+    int option;
+
+    if (mother.getId() != 0) {
+        std::cout  << "1. Delete mother\n";
+    }
+    if (mother_mother.getId() != 0) {
+        std::cout << "  11. Delete grandmother\n";
+    }
+    if (mother_father.getId() != 0) {
+        std::cout << "  12. Delete grandfather\n";
+    }
+    if (father.getId() != 0) {
+        std::cout  << "2. Delete father\n";
+    }
+    if (father_mother.getId() != 0) {
+        std::cout << "  21. Delete grandmother\n";
+    }
+    if (father_father.getId() != 0) {
+        std::cout << "  22. Delete grandfather\n";
+    }
+    std::cout << "> ";
+
+    std::cin >> option;
+
+    if (!std::cin.good()) {
+        std::cout << "Wrong input.\n";
+        return -1;
+    }
+
+    Pedigree record;
+
+    int parent_id, child_id;
+
+    switch (option)
+    {
+    case 1:
+        if (mother.getId() != 0) {
+            parent_id = mother.getId();
+            child_id = animal_id;
+        } else {
+            std::cout << "Wrong input.\n";
+            return -1;
+        }
+        break;
+    
+    case 11:
+        if (mother_mother.getId() != 0) {
+            parent_id = mother_mother.getId();
+            child_id = mother.getId();
+        } else {
+            std::cout << "Wrong input.\n";
+            return -1;
+        }
+        break;
+
+    case 12:
+        if (mother_father.getId() != 0) {
+            parent_id = mother_father.getId();
+            child_id = mother.getId();
+            
+        } else {
+            std::cout << "Wrong input.\n";
+            return -1;
+        }
+        break;
+
+    case 2:
+        if (father.getId() != 0) {
+            parent_id = father.getId();
+            child_id = animal_id;
+        } else {
+            std::cout << "Wrong input.\n";
+            return -1;
+        }
+        break;
+    
+    case 21:
+        if (father_mother.getId() != 0) {
+            parent_id = father_mother.getId();
+            child_id = father.getId();
+        } else {
+            std::cout << "Wrong input.\n";
+            return -1;
+        }
+        break;
+
+    case 22:
+        if (father_father.getId() != 0) {
+            parent_id = father_father.getId();
+            child_id = father.getId();
+        } else {
+            std::cout << "Wrong input.\n";
+            return -1;
+        }
+        break;
+
+    default:
+        break;
+    }
+
+    record.setParentId(parent_id);
+    record.setChildId(child_id);
+    try {
+        record.remove(dbc);
+        std::cout << "Deleted succesfully.\n";
+    } catch (std::runtime_error const& e) {
+        std::cout << "Failed to delete entry.\nError occured: " << e.what() << "\n";
+    }
+    return 0;
+
+ }
+
 int option_show_data(SQLHDBC dbc) {
 
     std::cout << "Select option:\n";
@@ -1384,13 +2006,13 @@ int option_show_data(SQLHDBC dbc) {
     std::cout << "5. Show POSITIONS\n";
     std::cout << "6. Show EXHIBITIONS\n";
     std::cout << "7. Show REQUESTS\n";
-    std::cout << "8. Show PEDIGREE of selected animal\n";
-    std::cout << "9. Show PARTICIPATIONS of selected animal\n";
+    std::cout << "8. Show PARTICIPATIONS of selected animal\n";
+    std::cout << "9. Show PEDIGREE of selected animal\n";
     std::cout << "> ";
 
     int option;
     std::cin >> option;
-    if (!std::cin.good() || option < 1 || option > 8) {
+    if (!std::cin.good() || option < 1 || option > 9) {
         std::cout << "Wrong input.\n";
         return -1;
     }
@@ -1436,12 +2058,14 @@ int option_show_data(SQLHDBC dbc) {
         std::map<int, pair> participations = Participation::get_values(dbc, "animal_id", std::to_string(animal_id));
         std::map<int, int> records;
         for (const auto& [order, p] : participations) {
-            records.insert({order, p.exhibition_id});
+            records.insert({order, p.second});
         }
         Exhibition::display(dbc, records, animal_id);
     }
         break;
-    
+    case 9:
+        option_show_pedigree_info(dbc);
+        break;
     default:
         break;
     }
@@ -1454,6 +2078,38 @@ int select_animal(SQLHDBC dbc, bool addition) {
     int animal_id;
     std::cout << "Select animal:\n";
     std::map<int, int> record_map = Animal::get_values(dbc);
+    Animal::display(dbc, record_map);
+    if (addition) std::cout << "or\n" << (int)(record_map.size())+1 << ". Add new animal\n";
+    std::cout << "> ";
+
+    int number;
+    std::cin >> number;
+
+    if (!std::cin.good()) {
+        std::cout << "Wrong input.\n";
+        return -1;
+    }
+    
+    // ключ найден
+    if (record_map.find(number) != record_map.end()) {
+        animal_id = record_map[number];
+    }
+    else if (addition && number == (int)(record_map.size())+1) {
+        animal_id = option_add_new_animal(dbc);
+    }
+    else {
+        std::cout << "Wrong input.\n";
+        return -1;
+    }
+
+    return animal_id;
+
+}
+
+int select_animal(SQLHDBC dbc, std::string gender, bool addition) {
+    int animal_id;
+    std::cout << "Select animal:\n";
+    std::map<int, int> record_map = Animal::get_values(dbc, "gender", gender);
     Animal::display(dbc, record_map);
     if (addition) std::cout << "or\n" << (int)(record_map.size())+1 << ". Add new animal\n";
     std::cout << "> ";
