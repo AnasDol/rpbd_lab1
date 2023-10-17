@@ -144,7 +144,7 @@ void Exhibition::remove(SQLHDBC dbc) {
     SQLFreeHandle(SQL_HANDLE_STMT, stmt);
 }
 
-Exhibition Exhibition::find(SQLHDBC dbc, int id) {
+Exhibition* Exhibition::find(SQLHDBC dbc, int id) {
     SQLHSTMT stmt;
     SQLRETURN res = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
     if (res != SQL_SUCCESS) {
@@ -172,8 +172,8 @@ Exhibition Exhibition::find(SQLHDBC dbc, int id) {
         throw std::runtime_error("Failed to execute SQL statement");
     }
 
-    Exhibition exhibition;
-    res = SQLBindCol(stmt, 1, SQL_C_LONG, &exhibition.id, 0, nullptr);
+    Exhibition* exhibition = new Exhibition();
+    res = SQLBindCol(stmt, 1, SQL_C_LONG, &exhibition->id, 0, nullptr);
     if (res != SQL_SUCCESS) {
         SQLFreeHandle(SQL_HANDLE_STMT, stmt);
         throw std::runtime_error("Failed to bind column for id");
@@ -188,7 +188,7 @@ Exhibition Exhibition::find(SQLHDBC dbc, int id) {
     SQLCHAR exhibition_date_buf[255];
     SQLLEN exhibition_date_len;
 
-    if (SQLBindCol(stmt, 1, SQL_C_LONG, &exhibition.id, 0, nullptr) != SQL_SUCCESS
+    if (SQLBindCol(stmt, 1, SQL_C_LONG, &exhibition->id, 0, nullptr) != SQL_SUCCESS
       || SQLBindCol(stmt, 2, SQL_C_CHAR, name_buf, sizeof(name_buf), &name_len) != SQL_SUCCESS
       || SQLBindCol(stmt, 3, SQL_C_CHAR, address_buf, sizeof(address_buf), &address_len) != SQL_SUCCESS
       || SQLBindCol(stmt, 4, SQL_C_CHAR, exhibition_date_buf, sizeof(exhibition_date_buf), &exhibition_date_len) != SQL_SUCCESS) {
@@ -198,10 +198,10 @@ Exhibition Exhibition::find(SQLHDBC dbc, int id) {
 
     res = SQLFetch(stmt);
     if (res == SQL_SUCCESS) {
-        exhibition.setName(std::string(name_buf, name_len));
-        exhibition.setAddress(std::string(address_buf, address_len));
-        sscanf((char*)exhibition_date_buf, "%d-%d-%d", &(exhibition.year), &(exhibition.month), &(exhibition.day));  // assuming that date is obtained in format "yyyy-mm-dd"
-    }
+        exhibition->setName(std::string(name_buf, name_len));
+        exhibition->setAddress(std::string(address_buf, address_len));
+        sscanf((char*)exhibition_date_buf, "%d-%d-%d", &(exhibition->year), &(exhibition->month), &(exhibition->day));  // assuming that date is obtained in format "yyyy-mm-dd"
+    } else return nullptr;
 
     SQLFreeHandle(SQL_HANDLE_STMT, stmt);
 

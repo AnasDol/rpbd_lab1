@@ -13,16 +13,16 @@
 class Client {
 
 public:
-    Client() : id(0), last_name(""), first_name(""), patronymic(""), address("") {}
+    Client() : id(-1), last_name(""), first_name(""), patronymic(""), address("") {}
 
-    Client(int i, const std::string& ln, const std::string& fn, const std::string& p, const std::string& a) 
-        : id(i), last_name(ln), first_name(fn), patronymic(p), address(a) {}
+    Client(const std::string& ln, const std::string& fn, const std::string& p, const std::string& a) 
+        : id(-1), last_name(ln), first_name(fn), patronymic(p), address(a) {}
 
     void insert(SQLHDBC dbc);
     void update(SQLHDBC dbc);
     void remove(SQLHDBC dbc);
 
-    static Client find(SQLHDBC dbc, int id);
+    static Client* find(SQLHDBC dbc, int id);
     static std::map<int, int> get_values(SQLHDBC dbc);
     static std::map<int, int> get_values(SQLHDBC dbc, std::string attribute, std::string value);
     static void display(SQLHDBC dbc, std::map<int, int> record_map);

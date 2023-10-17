@@ -8,21 +8,24 @@
 #include <iostream>
 #include <iomanip>
 #include <map>
+#include <memory>
 #include "../connection.hpp"
+
+#include "Position.hpp"
 
 class Employee {
 
 public:
-    Employee() : id(0), last_name(""), first_name(""), patronymic(""), address(""), position_id(0), salary(0) {}
+    Employee() : id(-1), last_name(""), first_name(""), patronymic(""), address(""), position(nullptr), salary(0) {}
 
-    Employee(int i, const std::string& ln, const std::string& fn, const std::string& p, const std::string& a, int pos, int s) 
-        : id(i), last_name(ln), first_name(fn), patronymic(p), address(a), position_id(pos), salary(s) {}
+    Employee(const std::string& ln, const std::string& fn, const std::string& p, const std::string& a, Position* pos, int s) 
+        : id(-1), last_name(ln), first_name(fn), patronymic(p), address(a), position(pos), salary(s) {}
 
     void insert(SQLHDBC dbc);
     void update(SQLHDBC dbc);
     void remove(SQLHDBC dbc);
 
-    static Employee find(SQLHDBC dbc, int id);
+    static Employee* find(SQLHDBC dbc, int id);
     static std::map<int, int> get_values(SQLHDBC dbc);
     static std::map<int, int> get_values(SQLHDBC dbc, std::string attribute, std::string value);
     static void display(SQLHDBC dbc, std::map<int, int> record_map);
@@ -33,7 +36,7 @@ public:
     std::string getFirstName() const { return first_name; }
     std::string getPatronymic() const { return patronymic; }
     std::string getAddress() const { return address; }
-    int getPositionId() const { return position_id; }
+    Position* getPosition() const { return position; }
     int getSalary() const { return salary; }
 
     // setters
@@ -41,7 +44,7 @@ public:
     void setFirstName(const std::string& n) { first_name = n; }
     void setPatronymic(const std::string& p) { patronymic = p; }
     void setAddress(const std::string& a) { address = a; }
-    void setPositionId(int pos_id) { position_id = pos_id; }
+    void setPosition(Position* newPosition) { position = newPosition; }
     void setSalary(int s) { salary = s; }
 
 private:
@@ -53,7 +56,7 @@ private:
     std::string first_name;
     std::string patronymic;
     std::string address;
-    int position_id;
+    Position* position;
     int salary;
 
 };

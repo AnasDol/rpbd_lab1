@@ -8,20 +8,21 @@
 #include <iostream>
 #include <iomanip>
 #include <map>
+#include <memory>
 #include "../connection.hpp"
 
 class Position {
 
 public:
-    Position() : id(0), name("") {}
+    Position() : id(-1), name("") {}
 
-    Position(int i, const std::string& n) : id(i), name(n) {}
+    Position(const std::string& n) : id(-1), name(n) {}
 
     void insert(SQLHDBC dbc);
     void update(SQLHDBC dbc);
     void remove(SQLHDBC dbc);
 
-    static Position find(SQLHDBC dbc, int id);
+    static Position* find(SQLHDBC dbc, int id);
     static std::map<int, int> get_values(SQLHDBC dbc);
     static std::map<int, int> get_values(SQLHDBC dbc, std::string attribute, std::string value);
     static void display(SQLHDBC dbc, std::map<int, int> record_map);

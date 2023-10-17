@@ -13,15 +13,15 @@
 class Breed {
 
   public:
-    Breed() : id(0), name("") {}
+    Breed() : id(-1), name("") {}
 
-    Breed(int i, const std::string &n) : id(i), name(n) {}
+    Breed(const std::string &n) : id(-1), name(n) {}
 
     void insert(SQLHDBC dbc);
     void update(SQLHDBC dbc);
     void remove(SQLHDBC dbc);
 
-    static Breed find(SQLHDBC dbc, int id);
+    static Breed* find(SQLHDBC dbc, int id);
     static std::map<int, int> get_values(SQLHDBC dbc);
     static std::map<int, int> get_values(SQLHDBC dbc, std::string attribute, std::string value);
     static void display(SQLHDBC dbc, std::map<int, int> record_map);

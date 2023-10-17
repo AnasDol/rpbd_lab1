@@ -13,7 +13,6 @@
 #include "ActiveRecord/Request.hpp"
 #include "ActiveRecord/Exhibition.hpp"
 #include "ActiveRecord/Participation.hpp"
-#include "ActiveRecord/Pedigree.hpp"
 
 void start(SQLHDBC dbc);
 void proceed(SQLHDBC dbc, int option);

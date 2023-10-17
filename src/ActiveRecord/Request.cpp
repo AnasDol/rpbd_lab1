@@ -15,26 +15,43 @@ void Request::insert(SQLHDBC dbc) {
       throw std::runtime_error("Failed to prepare SQL statement");
     }
 
-    res = SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &client_id, 0, NULL);
+    SQLLEN cbClient_id = 0, cbBreed_id = 0, cbGender = SQL_NTS, cbRequest_date = SQL_NTS;
+
+    int breed_id, client_id;
+
+    if (gender == "") cbGender = SQL_NULL_DATA;
+
+    if (breed == nullptr) {
+        breed_id = -1;
+        cbBreed_id = SQL_NULL_DATA;
+    } else breed_id = breed->getId();
+
+    if (client == nullptr) {
+        client_id = -1;
+        cbClient_id = SQL_NULL_DATA;
+    } else client_id = client->getId();
+
+
+    res = SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &client_id, 0, &cbClient_id);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
       throw std::runtime_error("Failed to bind parameter for client_id");
     }
 
-    res = SQLBindParameter(stmt, 2, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &breed_id, 0, NULL);
+    res = SQLBindParameter(stmt, 2, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &breed_id, 0, &cbBreed_id);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
       throw std::runtime_error("Failed to bind parameter for breed_id");
     }
 
-    res = SQLBindParameter(stmt, 3, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, gender.size(), 0, (SQLCHAR*)gender.c_str(), gender.size(), NULL);
+    res = SQLBindParameter(stmt, 3, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, gender.size(), 0, (SQLCHAR*)gender.c_str(), gender.size(), &cbGender);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
       throw std::runtime_error("Failed to bind parameter for gender");
     }
 
     std::string request_date = getDate();
-    res = SQLBindParameter(stmt, 4, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, request_date.size(), 0, (SQLCHAR*)request_date.c_str(), request_date.size(), NULL);
+    res = SQLBindParameter(stmt, 4, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, request_date.size(), 0, (SQLCHAR*)request_date.c_str(), request_date.size(), &cbRequest_date);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
       throw std::runtime_error("Failed to bind parameter for request_date");
@@ -76,26 +93,43 @@ void Request::update(SQLHDBC dbc) {
       throw std::runtime_error("Failed to prepare SQL statement");
     }
 
-    res = SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &client_id, 0, NULL);
+    SQLLEN cbClient_id = 0, cbBreed_id = 0, cbGender = SQL_NTS, cbRequest_date = SQL_NTS;
+
+    int breed_id, client_id;
+
+    if (gender == "") cbGender = SQL_NULL_DATA;
+
+    if (breed == nullptr) {
+        breed_id = -1;
+        cbBreed_id = SQL_NULL_DATA;
+    } else breed_id = breed->getId();
+
+    if (client == nullptr) {
+        client_id = -1;
+        cbClient_id = SQL_NULL_DATA;
+    } else client_id = client->getId();
+
+
+    res = SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &client_id, 0, &cbClient_id);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
       throw std::runtime_error("Failed to bind parameter for client_id");
     }
 
-    res = SQLBindParameter(stmt, 2, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &breed_id, 0, NULL);
+    res = SQLBindParameter(stmt, 2, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &breed_id, 0, &cbBreed_id);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
       throw std::runtime_error("Failed to bind parameter for breed_id");
     }
 
-    res = SQLBindParameter(stmt, 3, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, gender.size(), 0, (SQLCHAR*)gender.c_str(), gender.size(), NULL);
+    res = SQLBindParameter(stmt, 3, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, gender.size(), 0, (SQLCHAR*)gender.c_str(), gender.size(), &cbGender);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
       throw std::runtime_error("Failed to bind parameter for gender");
     }
 
     std::string request_date = getDate();
-    res = SQLBindParameter(stmt, 4, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, request_date.size(), 0, (SQLCHAR*)request_date.c_str(), request_date.size(), NULL);
+    res = SQLBindParameter(stmt, 4, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, request_date.size(), 0, (SQLCHAR*)request_date.c_str(), request_date.size(), &cbRequest_date);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
       throw std::runtime_error("Failed to bind parameter for request_date");
@@ -146,7 +180,7 @@ void Request::remove(SQLHDBC dbc) {
     SQLFreeHandle(SQL_HANDLE_STMT, stmt);
   }
 
-Request Request::find(SQLHDBC dbc, int id) {
+Request* Request::find(SQLHDBC dbc, int id) {
     SQLHSTMT stmt;
     SQLRETURN res = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
     if (res != SQL_SUCCESS) {
@@ -173,13 +207,15 @@ Request Request::find(SQLHDBC dbc, int id) {
       throw std::runtime_error("Failed to execute SQL statement");
     }
 
-    Request request;
+    Request* request = new Request();
     SQLCHAR gender_buf[255], request_date_buf[255];
     SQLLEN gender_len, request_date_len;
 
-    if (SQLBindCol(stmt, 1, SQL_C_LONG, &request.id, 0, nullptr) != SQL_SUCCESS
-      || SQLBindCol(stmt, 2, SQL_C_LONG, &request.client_id, 0, nullptr) != SQL_SUCCESS
-      || SQLBindCol(stmt, 3, SQL_C_LONG, &request.breed_id, 0, nullptr) != SQL_SUCCESS
+    int client_id, breed_id;
+
+    if (SQLBindCol(stmt, 1, SQL_C_LONG, &request->id, 0, nullptr) != SQL_SUCCESS
+      || SQLBindCol(stmt, 2, SQL_C_LONG, &client_id, 0, nullptr) != SQL_SUCCESS
+      || SQLBindCol(stmt, 3, SQL_C_LONG, &breed_id, 0, nullptr) != SQL_SUCCESS
       || SQLBindCol(stmt, 4, SQL_C_CHAR, gender_buf, sizeof(gender_buf), &gender_len) != SQL_SUCCESS
       || SQLBindCol(stmt, 5, SQL_C_CHAR, request_date_buf, sizeof(request_date_buf), &request_date_len) != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
@@ -189,12 +225,15 @@ Request Request::find(SQLHDBC dbc, int id) {
     res = SQLFetch(stmt);
     if (res == SQL_SUCCESS) {
 
-        sscanf((char*)request_date_buf, "%d-%d-%d", &(request.year), &(request.month), &(request.day));  // assuming that date is obtained in format "yyyy-mm-dd"
-        request.gender = std::string((char*)gender_buf, gender_len);
+        sscanf((char*)request_date_buf, "%d-%d-%d", &(request->year), &(request->month), &(request->day));  // assuming that date is obtained in format "yyyy-mm-dd"
+        request->gender = std::string((char*)gender_buf, gender_len);
+        request->setClient(Client::find(dbc, client_id));
+        request->setBreed(Breed::find(dbc, breed_id));
 
     } else if (res == SQL_NO_DATA) {
         SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-        throw std::runtime_error("No such request with given id");
+        std::runtime_error("No such request with given id");
+        return nullptr;
     } else {
         SQLFreeHandle(SQL_HANDLE_STMT, stmt);
         throw std::runtime_error("Failed to fetch data");

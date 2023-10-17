@@ -8,16 +8,19 @@ void Breed::insert(SQLHDBC dbc) {
         throw std::runtime_error("Failed to allocate statement handle");
     }
 
-    std::string query = "INSERT INTO breeds (name) VALUES (?) RETURNING id";
+    std::string query = "INSERT INTO " + table_name + " (name) VALUES (?) RETURNING id";
     res = SQLPrepare(stmt, (SQLCHAR *)query.c_str(), SQL_NTS);
     if (res != SQL_SUCCESS) {
         SQLFreeHandle(SQL_HANDLE_STMT, stmt);
         throw std::runtime_error("Failed to prepare SQL statement");
     }
 
+    SQLLEN cbName = SQL_NTS;
+    if (name == "") cbName = SQL_NULL_DATA;
+
     res = SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR,
                            name.size(), 0, (SQLCHAR *)name.c_str(), name.size(),
-                           nullptr);
+                           &cbName);
     if (res != SQL_SUCCESS) {
         SQLFreeHandle(SQL_HANDLE_STMT, stmt);
         throw std::runtime_error("Failed to bind parameter for name");
@@ -58,9 +61,12 @@ void Breed::update(SQLHDBC dbc) {
         throw std::runtime_error("Failed to prepare SQL statement");
     }
 
+   SQLLEN cbName = SQL_NTS;
+    if (name == "") cbName = SQL_NULL_DATA;
+
     res = SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR,
-                           name.size(), 0, const_cast<char *>(name.c_str()),
-                           name.size(), nullptr);
+                           name.size(), 0, (SQLCHAR *)name.c_str(), name.size(),
+                           &cbName);
     if (res != SQL_SUCCESS) {
         SQLFreeHandle(SQL_HANDLE_STMT, stmt);
         throw std::runtime_error("Failed to bind parameter for name");
@@ -112,7 +118,7 @@ void Breed::remove(SQLHDBC dbc) {
     SQLFreeHandle(SQL_HANDLE_STMT, stmt);
 }
 
-Breed Breed::find(SQLHDBC dbc, int id) {
+Breed* Breed::find(SQLHDBC dbc, int id) {
 
     SQLHSTMT stmt;
     SQLRETURN res = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
@@ -141,8 +147,8 @@ Breed Breed::find(SQLHDBC dbc, int id) {
         throw std::runtime_error("Failed to execute SQL statement");
     }
 
-    Breed breed;
-    res = SQLBindCol(stmt, 1, SQL_C_LONG, &breed.id, 0, nullptr);
+    Breed* breed = new Breed();
+    res = SQLBindCol(stmt, 1, SQL_C_LONG, &breed->id, 0, nullptr);
     if (res != SQL_SUCCESS) {
         SQLFreeHandle(SQL_HANDLE_STMT, stmt);
         throw std::runtime_error("Failed to bind column for id");
@@ -158,8 +164,8 @@ Breed Breed::find(SQLHDBC dbc, int id) {
 
     res = SQLFetch(stmt);
     if (res == SQL_SUCCESS) {
-        breed.setName(std::string(nameBuffer, len));
-    }
+        breed->setName(std::string(nameBuffer, len));
+    } else return nullptr;
 
     SQLFreeHandle(SQL_HANDLE_STMT, stmt);
 

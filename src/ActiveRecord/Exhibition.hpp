@@ -13,16 +13,16 @@
 class Exhibition {
 
 public:
-    Exhibition() : id(0), name(""), address(""), day(0), month(0), year(0) {}
+    Exhibition() : id(-1), name(""), address(""), day(0), month(0), year(0) {}
 
-    Exhibition(int i, const std::string& n, const std::string& a, int d, int m, int y) 
-        : id(i), name(n), address(a), day(d), month(m), year(y) {}
+    Exhibition(const std::string& n, const std::string& a, int d, int m, int y) 
+        : id(-1), name(n), address(a), day(d), month(m), year(y) {}
 
     void insert(SQLHDBC dbc);
     void update(SQLHDBC dbc);
     void remove(SQLHDBC dbc);
 
-    static Exhibition find(SQLHDBC dbc, int id);
+    static Exhibition* find(SQLHDBC dbc, int id);
     static std::map<int, int> get_values(SQLHDBC dbc);
     static std::map<int, int> get_values(SQLHDBC dbc, std::string attribute, std::string value);
     static void display(SQLHDBC dbc, std::map<int, int> record_map);

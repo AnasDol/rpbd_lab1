@@ -16,14 +16,31 @@ void Participation::insert(SQLHDBC dbc) {
         throw std::runtime_error("Failed to prepare SQL statement");
     }
 
-    res = SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &animal_id, 0, NULL);
+    SQLLEN cbAnimal_id = 0, cbExhibition_id = 0, cbReward = SQL_NTS;
+
+    int animal_id, exhibition_id;
+
+    if (reward == "") cbReward = SQL_NULL_DATA;
+
+    if (animal == nullptr) {
+        animal_id = -1;
+        cbAnimal_id = SQL_NULL_DATA;
+    } else animal_id = animal->getId();
+
+    if (exhibition == nullptr) {
+        exhibition_id = -1;
+        cbExhibition_id = SQL_NULL_DATA;
+    } else exhibition_id = exhibition->getId();
+
+
+    res = SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &animal_id, 0, &cbAnimal_id);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
       throw std::runtime_error("Failed to bind parameter for animal_id");
     }
 
 
-    res = SQLBindParameter(stmt, 2, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &exhibition_id, 0, NULL);
+    res = SQLBindParameter(stmt, 2, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &exhibition_id, 0, &cbExhibition_id);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
       throw std::runtime_error("Failed to bind parameter for exhibition_id");
@@ -31,7 +48,7 @@ void Participation::insert(SQLHDBC dbc) {
 
     res = SQLBindParameter(stmt, 3, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR,
                            reward.size(), 0, (SQLCHAR *)reward.c_str(),
-                           reward.size(), nullptr);
+                           reward.size(), &cbReward);
     if (res != SQL_SUCCESS) {
         SQLFreeHandle(SQL_HANDLE_STMT, stmt);
         throw std::runtime_error("Failed to bind parameter for reward");
@@ -62,14 +79,31 @@ void Participation::update(SQLHDBC dbc) {
         throw std::runtime_error("Failed to prepare SQL statement");
     }
 
-    res = SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &animal_id, 0, NULL);
+        SQLLEN cbAnimal_id = 0, cbExhibition_id = 0, cbReward = SQL_NTS;
+
+    int animal_id, exhibition_id;
+
+    if (reward == "") cbReward = SQL_NULL_DATA;
+
+    if (animal == nullptr) {
+        animal_id = -1;
+        cbAnimal_id = SQL_NULL_DATA;
+    } else animal_id = animal->getId();
+
+    if (exhibition == nullptr) {
+        exhibition_id = -1;
+        cbExhibition_id = SQL_NULL_DATA;
+    } else exhibition_id = exhibition->getId();
+
+
+    res = SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &animal_id, 0, &cbAnimal_id);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
       throw std::runtime_error("Failed to bind parameter for animal_id");
     }
 
 
-    res = SQLBindParameter(stmt, 2, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &exhibition_id, 0, NULL);
+    res = SQLBindParameter(stmt, 2, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &exhibition_id, 0, &cbExhibition_id);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
       throw std::runtime_error("Failed to bind parameter for exhibition_id");
@@ -77,7 +111,7 @@ void Participation::update(SQLHDBC dbc) {
 
     res = SQLBindParameter(stmt, 3, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR,
                            reward.size(), 0, (SQLCHAR *)reward.c_str(),
-                           reward.size(), nullptr);
+                           reward.size(), &cbReward);
     if (res != SQL_SUCCESS) {
         SQLFreeHandle(SQL_HANDLE_STMT, stmt);
         throw std::runtime_error("Failed to bind parameter for reward");
@@ -119,13 +153,27 @@ void Participation::remove(SQLHDBC dbc) {
         throw std::runtime_error("Failed to prepare SQL statement");
     }
 
-    res = SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &animal_id, 0, NULL);
+    SQLLEN cbAnimal_id = 0, cbExhibition_id = 0;
+
+    int animal_id, exhibition_id;
+
+    if (animal == nullptr) {
+        animal_id = -1;
+        cbAnimal_id = SQL_NULL_DATA;
+    } else animal_id = animal->getId();
+
+    if (exhibition == nullptr) {
+        exhibition_id = -1;
+        cbExhibition_id = SQL_NULL_DATA;
+    } else exhibition_id = exhibition->getId();
+
+    res = SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &animal_id, 0, &cbAnimal_id);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
       throw std::runtime_error("Failed to bind parameter for animal_id");
     }
 
-    res = SQLBindParameter(stmt, 2, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &exhibition_id, 0, NULL);
+    res = SQLBindParameter(stmt, 2, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &exhibition_id, 0, &cbExhibition_id);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
       throw std::runtime_error("Failed to bind parameter for exhibition_id");
@@ -140,7 +188,7 @@ void Participation::remove(SQLHDBC dbc) {
     SQLFreeHandle(SQL_HANDLE_STMT, stmt);
 }
 
-Participation Participation::find(SQLHDBC dbc, int animal_id, int exhibition_id) {
+Participation* Participation::find(SQLHDBC dbc, int animal_id, int exhibition_id) {
 
     SQLHSTMT stmt;
     SQLRETURN res = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
@@ -174,15 +222,13 @@ Participation Participation::find(SQLHDBC dbc, int animal_id, int exhibition_id)
         throw std::runtime_error("Failed to execute SQL statement");
     }
 
-    Participation participation;
-
-    res = SQLBindCol(stmt, 1, SQL_C_LONG, &participation.animal_id, 0, nullptr);
+    res = SQLBindCol(stmt, 1, SQL_C_LONG, &animal_id, 0, nullptr);
     if (res != SQL_SUCCESS) {
         SQLFreeHandle(SQL_HANDLE_STMT, stmt);
         throw std::runtime_error("Failed to bind column for animal_id");
     }
 
-    res = SQLBindCol(stmt, 2, SQL_C_LONG, &participation.exhibition_id, 0, nullptr);
+    res = SQLBindCol(stmt, 2, SQL_C_LONG, &exhibition_id, 0, nullptr);
     if (res != SQL_SUCCESS) {
         SQLFreeHandle(SQL_HANDLE_STMT, stmt);
         throw std::runtime_error("Failed to bind column for exhibition_id");
@@ -197,9 +243,22 @@ Participation Participation::find(SQLHDBC dbc, int animal_id, int exhibition_id)
         throw std::runtime_error("Failed to bind column for reward");
     }
 
+    Participation* participation = new Participation();
+
     res = SQLFetch(stmt);
     if (res == SQL_SUCCESS) {
-        participation.setReward(std::string(reward_buf, reward_len));
+        participation->setReward(std::string(reward_buf, reward_len));
+        participation->setAnimal(Animal::find(dbc, animal_id));
+        participation->setExhibition(Exhibition::find(dbc, exhibition_id));
+    }
+    else if (res == SQL_NO_DATA) {
+        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+        //throw std::runtime_error("No such animal with given id");
+        return nullptr;
+    } 
+    else {
+        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+        throw std::runtime_error("Failed to fetch data");
     }
 
     SQLFreeHandle(SQL_HANDLE_STMT, stmt);

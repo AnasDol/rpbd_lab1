@@ -160,7 +160,7 @@ void Client::remove(SQLHDBC dbc) {
     SQLFreeHandle(SQL_HANDLE_STMT, stmt);
 }
 
-Client Client::find(SQLHDBC dbc, int id) {
+Client* Client::find(SQLHDBC dbc, int id) {
     SQLHSTMT stmt;
     SQLRETURN res = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
     if (res != SQL_SUCCESS) {
@@ -188,8 +188,8 @@ Client Client::find(SQLHDBC dbc, int id) {
         throw std::runtime_error("Failed to execute SQL statement");
     }
 
-    Client client;
-    res = SQLBindCol(stmt, 1, SQL_C_LONG, &client.id, 0, nullptr);
+    Client* client = new Client();
+    res = SQLBindCol(stmt, 1, SQL_C_LONG, &client->id, 0, nullptr);
     if (res != SQL_SUCCESS) {
         SQLFreeHandle(SQL_HANDLE_STMT, stmt);
         throw std::runtime_error("Failed to bind column for id");
@@ -233,11 +233,11 @@ Client Client::find(SQLHDBC dbc, int id) {
 
     res = SQLFetch(stmt);
     if (res == SQL_SUCCESS) {
-        client.setLastName(std::string(last_name_buf, len1));
-        client.setFirstName(std::string(first_name_buf, len2));
-        client.setPatronymic(std::string(patronymic_buf, len3));
-        client.setAddress(std::string(address_buf, len4));
-    }
+        client->setLastName(std::string(last_name_buf, len1));
+        client->setFirstName(std::string(first_name_buf, len2));
+        client->setPatronymic(std::string(patronymic_buf, len3));
+        client->setAddress(std::string(address_buf, len4));
+    } else return nullptr;
 
     SQLFreeHandle(SQL_HANDLE_STMT, stmt);
 

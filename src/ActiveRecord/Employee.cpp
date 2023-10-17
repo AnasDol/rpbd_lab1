@@ -15,41 +15,61 @@ void Employee::insert(SQLHDBC dbc) {
       throw std::runtime_error("Failed to prepare SQL statement");
     }
 
+    SQLLEN cbLast_name = SQL_NTS,
+    cbFirst_name = SQL_NTS,
+    cbPatronymic = SQL_NTS,
+    cbAddress = SQL_NTS,
+    cbPosition_id = 0,
+    cbSalary = 0;
+
+    if (last_name == "") cbLast_name = SQL_NULL_DATA;
+    if (first_name == "") cbFirst_name = SQL_NULL_DATA;
+    if (patronymic == "") cbPatronymic = SQL_NULL_DATA;
+    if (address == "") cbAddress = SQL_NULL_DATA;
+
+    int position_id;
+    if (position == nullptr) {
+        position_id = -1;
+        cbPosition_id = SQL_NULL_DATA;
+    } else position_id = position->getId();
+
+    if (salary == -1) cbSalary = SQL_NULL_DATA;
+
     res = SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, last_name.size(), 0,
-                              (SQLCHAR*)last_name.c_str(), last_name.size(), nullptr);
+                              (SQLCHAR*)last_name.c_str(), last_name.size(), &cbLast_name);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
       throw std::runtime_error("Failed to bind parameter for last_name");
     }
 
     res = SQLBindParameter(stmt, 2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, first_name.size(), 0,
-                              (SQLCHAR*)first_name.c_str(), first_name.size(), nullptr);
+                              (SQLCHAR*)first_name.c_str(), first_name.size(), &cbFirst_name);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
       throw std::runtime_error("Failed to bind parameter for first_name");
     }
 
     res = SQLBindParameter(stmt, 3, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, patronymic.size(), 0,
-                              (SQLCHAR*)patronymic.c_str(), patronymic.size(), nullptr);
+                              (SQLCHAR*)patronymic.c_str(), patronymic.size(), &cbPatronymic);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
       throw std::runtime_error("Failed to bind parameter for patronymic");
     }
 
     res = SQLBindParameter(stmt, 4, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, address.size(), 0,
-                              (SQLCHAR*)address.c_str(), address.size(), nullptr);
+                              (SQLCHAR*)address.c_str(), address.size(), &cbAddress);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
       throw std::runtime_error("Failed to bind parameter for address");
     }
 
-    res = SQLBindParameter(stmt, 5, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &position_id, 0, nullptr);
+    res = SQLBindParameter(stmt, 5, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &position_id, 0, &cbPosition_id);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
       throw std::runtime_error("Failed to bind parameter for position_id");
     }
 
-    res = SQLBindParameter(stmt, 6, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &salary, 0, nullptr);
+    res = SQLBindParameter(stmt, 6, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &salary, 0, &cbSalary);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
       throw std::runtime_error("Failed to bind parameter for salary");
@@ -91,46 +111,65 @@ void Employee::update(SQLHDBC dbc) {
       throw std::runtime_error("Failed to prepare SQL statement");
     }
 
+    SQLLEN cbLast_name = SQL_NTS,
+    cbFirst_name = SQL_NTS,
+    cbPatronymic = SQL_NTS,
+    cbAddress = SQL_NTS,
+    cbPosition_id = 0,
+    cbSalary = 0;
+
+    if (last_name == "") cbLast_name = SQL_NULL_DATA;
+    if (first_name == "") cbFirst_name = SQL_NULL_DATA;
+    if (patronymic == "") cbPatronymic = SQL_NULL_DATA;
+    if (address == "") cbAddress = SQL_NULL_DATA;
+    
+    int position_id;
+    if (position == nullptr) {
+        position_id = -1;
+        cbPosition_id = SQL_NULL_DATA;
+    } else position_id = position->getId();
+
+    if (salary == -1) cbSalary = SQL_NULL_DATA;
+
     res = SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, last_name.size(), 0,
-                              (SQLCHAR*)last_name.c_str(), last_name.size(), nullptr);
+                              (SQLCHAR*)last_name.c_str(), last_name.size(), &cbLast_name);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
       throw std::runtime_error("Failed to bind parameter for last_name");
     }
 
     res = SQLBindParameter(stmt, 2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, first_name.size(), 0,
-                              (SQLCHAR*)first_name.c_str(), first_name.size(), nullptr);
+                              (SQLCHAR*)first_name.c_str(), first_name.size(), &cbFirst_name);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
       throw std::runtime_error("Failed to bind parameter for first_name");
     }
 
     res = SQLBindParameter(stmt, 3, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, patronymic.size(), 0,
-                              (SQLCHAR*)patronymic.c_str(), patronymic.size(), nullptr);
+                              (SQLCHAR*)patronymic.c_str(), patronymic.size(), &cbPatronymic);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
       throw std::runtime_error("Failed to bind parameter for patronymic");
     }
 
     res = SQLBindParameter(stmt, 4, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, address.size(), 0,
-                              (SQLCHAR*)address.c_str(), address.size(), nullptr);
+                              (SQLCHAR*)address.c_str(), address.size(), &cbAddress);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
       throw std::runtime_error("Failed to bind parameter for address");
     }
 
-    res = SQLBindParameter(stmt, 5, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &position_id, 0, nullptr);
+    res = SQLBindParameter(stmt, 5, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &position_id, 0, &cbPosition_id);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
       throw std::runtime_error("Failed to bind parameter for position_id");
     }
 
-    res = SQLBindParameter(stmt, 6, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &salary, 0, nullptr);
+    res = SQLBindParameter(stmt, 6, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &salary, 0, &cbSalary);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
       throw std::runtime_error("Failed to bind parameter for salary");
     }
-
     res = SQLBindParameter(stmt, 7, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &id, 0, nullptr);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
@@ -176,7 +215,7 @@ void Employee::remove(SQLHDBC dbc) {
     SQLFreeHandle(SQL_HANDLE_STMT, stmt);
   }
 
-Employee Employee::find(SQLHDBC dbc, int id) {
+Employee* Employee::find(SQLHDBC dbc, int id) {
     
     SQLHSTMT stmt;
     SQLRETURN res = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
@@ -192,6 +231,10 @@ Employee Employee::find(SQLHDBC dbc, int id) {
       throw std::runtime_error("Failed to prepare SQL statement");
     }
 
+    SQLLEN cbId, cbLastName, cbFirstName, cbPatronymic, cbAddress, cbPositionId, cbSalary;
+    SQLLEN salary, position_id;
+    char lastName[512], firstName[512], patronymic[512], address[512];
+
     res = SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &id, 0, nullptr);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
@@ -204,64 +247,30 @@ Employee Employee::find(SQLHDBC dbc, int id) {
       throw std::runtime_error("Failed to execute SQL statement");
     }
 
-    Employee employee;
-    res = SQLBindCol(stmt, 1, SQL_C_LONG, &employee.id, 0, nullptr);
-    if (res != SQL_SUCCESS) {
+    if (SQLBindCol(stmt, 1, SQL_C_LONG, &id, 0, &cbId) != SQL_SUCCESS
+      || SQLBindCol(stmt, 2, SQL_C_CHAR, (SQLCHAR*)lastName, 513, &cbLastName) != SQL_SUCCESS
+      || SQLBindCol(stmt, 3, SQL_C_CHAR, (SQLCHAR*)firstName, 513, &cbFirstName) != SQL_SUCCESS
+      || SQLBindCol(stmt, 4, SQL_C_CHAR, (SQLCHAR*)patronymic, 513, &cbPatronymic) != SQL_SUCCESS
+      || SQLBindCol(stmt, 5, SQL_C_CHAR, (SQLCHAR*)address, 513, &cbAddress) != SQL_SUCCESS
+      || SQLBindCol(stmt, 6, SQL_C_LONG, &position_id, 0, &cbPositionId) != SQL_SUCCESS
+      || SQLBindCol(stmt, 7, SQL_C_LONG, &salary, 0, &cbSalary) != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-      throw std::runtime_error("Failed to bind column for id");
+      throw std::runtime_error("Failed to bind column");
     }
 
-    SQLLEN len1;
-    char last_name_buf[255];
-    res = SQLBindCol(stmt, 2, SQL_C_CHAR, last_name_buf, sizeof(last_name_buf), &len1);
-    if (res != SQL_SUCCESS) {
-      SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-      throw std::runtime_error("Failed to bind column for last_name");
-    }
-
-    SQLLEN len2;
-    char first_name_buf[255];
-    res = SQLBindCol(stmt, 3, SQL_C_CHAR, first_name_buf, sizeof(first_name_buf), &len2);
-    if (res != SQL_SUCCESS) {
-      SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-      throw std::runtime_error("Failed to bind column for first_name");
-    }
-
-    SQLLEN len3;
-    char patronymic_buf[255];
-    res = SQLBindCol(stmt, 4, SQL_C_CHAR, patronymic_buf, sizeof(patronymic_buf), &len3);
-    if (res != SQL_SUCCESS) {
-      SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-      throw std::runtime_error("Failed to bind column for patronymic");
-    }
-
-    SQLLEN len4;
-    char address_buf[255];
-    res = SQLBindCol(stmt, 5, SQL_C_CHAR, address_buf, sizeof(address_buf), &len4);
-    if (res != SQL_SUCCESS) {
-      SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-      throw std::runtime_error("Failed to bind column for address");
-    }
-
-    res = SQLBindCol(stmt, 6, SQL_C_LONG, &employee.position_id, 0, nullptr);
-    if (res != SQL_SUCCESS) {
-      SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-      throw std::runtime_error("Failed to bind column for position_id");
-    }
-
-    res = SQLBindCol(stmt, 7, SQL_C_LONG, &employee.salary, 0, nullptr);
-    if (res != SQL_SUCCESS) {
-      SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-      throw std::runtime_error("Failed to bind column for salary");
-    }
+    Employee* employee = new Employee();
 
     res = SQLFetch(stmt);
     if (res == SQL_SUCCESS) {
-        employee.setLastName(std::string(last_name_buf, len1));
-        employee.setFirstName(std::string(first_name_buf, len2));
-        employee.setPatronymic(std::string(patronymic_buf, len3));
-        employee.setAddress(std::string(address_buf, len4));
-    }
+        
+        if (cbId != SQL_NULL_DATA) employee->id = id;
+        if (cbLastName != SQL_NULL_DATA) employee->last_name = std::string((char*)lastName);
+        if (cbFirstName != SQL_NULL_DATA) employee->first_name = std::string((char*)firstName);
+        if (cbPatronymic != SQL_NULL_DATA) employee->patronymic = std::string((char*)patronymic);
+        if (cbAddress != SQL_NULL_DATA) employee->address = std::string((char*)address);
+        if (cbPositionId != SQL_NULL_DATA) employee->position = Position::find(dbc, position_id);
+        if (cbSalary != SQL_NULL_DATA) employee->salary = salary;
+    } else return nullptr;
 
     SQLFreeHandle(SQL_HANDLE_STMT, stmt);
 
@@ -369,56 +378,23 @@ void Employee::display(SQLHDBC dbc, std::map<int, int> record_map) {
               << std::setw(20) << "First name" 
               << std::setw(20) << "Patronymic" 
               << std::setw(40) << "Address"
-              << std::setw(20) << "Position ID" 
+              << std::setw(20) << "Position" 
               << std::setw(20) << "Salary"
               << std::endl;
-
     
     for (const auto& [order, id] : record_map) {
 
-        SQLHSTMT hstmt;
-        SQLRETURN retcode;
+        Employee* current = find(dbc, id);
 
-        retcode = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &hstmt);
-
-        if (retcode != SQL_SUCCESS && retcode != SQL_SUCCESS_WITH_INFO) {
-            std::cout << "Failed to allocate handle." << std::endl;
-            return;
-        }
-
-        std::string query = "SELECT * FROM " + table_name + " WHERE id = " + std::to_string(id);
-
-        retcode = SQLExecDirect(hstmt, (SQLCHAR*)(query.c_str()), SQL_NTS);
-
-        if (retcode != SQL_SUCCESS && retcode != SQL_SUCCESS_WITH_INFO) {
-            std::cout << "Failed to execute query." << std::endl;
-            continue;
-        }
-
-        while (SQLFetch(hstmt) == SQL_SUCCESS) {
-
-            SQLINTEGER id, position_id, salary;
-            SQLCHAR last_name[64], first_name[10], patronymic[64], address[64];
-
-            SQLGetData(hstmt, 1, SQL_C_LONG, &id, 0, nullptr);
-            SQLGetData(hstmt, 2, SQL_C_CHAR, &last_name, sizeof(last_name), nullptr);
-            SQLGetData(hstmt, 3, SQL_C_CHAR, &first_name, sizeof(first_name), nullptr);
-            SQLGetData(hstmt, 4, SQL_C_CHAR, &patronymic, sizeof(patronymic), nullptr);
-            SQLGetData(hstmt, 5, SQL_C_CHAR, &address, sizeof(address), nullptr);
-            SQLGetData(hstmt, 6, SQL_C_LONG, &position_id, 0, nullptr);
-            SQLGetData(hstmt, 7, SQL_C_LONG, &salary, 0, nullptr);
-
-            std::cout << order << "."
-                << std::setw(10) << id
-                << std::setw(20) << last_name
-                << std::setw(20) << first_name
-                << std::setw(20) << patronymic
-                << std::setw(40) << address
-                << std::setw(20) << position_id
-                << std::setw(20) << salary
-                << std::endl;
-        }   
-
-        SQLFreeHandle(SQL_HANDLE_STMT, hstmt);       
+        std::cout << order << "."
+                  << std::setw(10) << current->getId()
+                  << std::setw(20) << current->getLastName()
+                  << std::setw(20) << current->getFirstName()
+                  << std::setw(20) << current->getPatronymic()
+                  << std::setw(40) << current->getPatronymic()
+                  << std::setw(20) << ((current->getPosition() != nullptr) ? current->getPosition()->getName() : "")
+                  << std::setw(20) << ((current->getSalary() != -1) ? std::to_string(current->getSalary()) : "")
+                  << std::endl;
+        
     }
 }

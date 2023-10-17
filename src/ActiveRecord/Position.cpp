@@ -110,7 +110,7 @@ void Position::remove(SQLHDBC dbc) {
     SQLFreeHandle(SQL_HANDLE_STMT, stmt);
   }
 
-Position Position::find(SQLHDBC dbc, int id) {
+Position* Position::find(SQLHDBC dbc, int id) {
     
     SQLHSTMT stmt;
     SQLRETURN res = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
@@ -126,6 +126,9 @@ Position Position::find(SQLHDBC dbc, int id) {
       throw std::runtime_error("Failed to prepare SQL statement");
     }
 
+    SQLLEN cbId, cbName;
+    SQLCHAR name[512];
+
     res = SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &id, 0, nullptr);
     if (res != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
@@ -138,25 +141,20 @@ Position Position::find(SQLHDBC dbc, int id) {
       throw std::runtime_error("Failed to execute SQL statement");
     }
 
-    Position position;
-    res = SQLBindCol(stmt, 1, SQL_C_LONG, &position.id, 0, nullptr);
-    if (res != SQL_SUCCESS) {
+    if (SQLBindCol(stmt, 1, SQL_C_LONG, &id, 0, &cbId) != SQL_SUCCESS
+      || SQLBindCol(stmt, 2, SQL_C_CHAR, (SQLCHAR*)name, 513, &cbName) != SQL_SUCCESS) {
       SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-      throw std::runtime_error("Failed to bind column for id");
+        throw std::runtime_error("Failed to bind column");
     }
 
-    SQLLEN len;
-    char nameBuffer[255];
-    res = SQLBindCol(stmt, 2, SQL_C_CHAR, nameBuffer, sizeof(nameBuffer), &len);
-    if (res != SQL_SUCCESS) {
-      SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-      throw std::runtime_error("Failed to bind column for name");
-    }
+    Position* position = new Position();
 
     res = SQLFetch(stmt);
     if (res == SQL_SUCCESS) {
-      position.setName(std::string(nameBuffer, len));
-    }
+        
+        if (cbId != SQL_NULL_DATA) position->id = id;
+        if (cbName != SQL_NULL_DATA) position->name = std::string((char*)name);
+    } else return nullptr;
 
     SQLFreeHandle(SQL_HANDLE_STMT, stmt);
 
