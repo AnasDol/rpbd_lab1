@@ -18,7 +18,7 @@ void start(SQLHDBC dbc) {
         std::cout << "7. Create new request\n";
         std::cout << "\n";
         std::cout << "8. Enter data on the participation of animals in exhibitions\n";
-        //std::cout << "9. Enter pedigree information\n";
+        std::cout << "9. Enter pedigree information\n";
         std::cout << "\n";
         std::cout << "11. Update animal\n";
         std::cout << "12. Update breed\n";
@@ -90,7 +90,7 @@ void proceed(SQLHDBC dbc, int option) {
         option_add_new_participation(dbc);
         break;
     case 9:
-        //option_add_new_pedigree_info(dbc);
+        option_add_new_pedigree_info(dbc);
         break;
 
     case 11:
@@ -529,7 +529,7 @@ int option_add_new_participation(SQLHDBC dbc) {
 
         Participation* participation = Participation::find(dbc, animal_id, exhibition_id);
 
-        if (participation->getAnimal()->getId() == animal_id && participation->getExhibition()->getId() == exhibition_id) {
+        if (participation != nullptr) {
             std::cout << "Selected animal has already taken part in the selected exhibition.\n";
             return -1;
         }
@@ -538,6 +538,7 @@ int option_add_new_participation(SQLHDBC dbc) {
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         getline(std::cin, reward);
 
+        participation = new Participation();
         participation->setAnimal(Animal::find(dbc, animal_id));
         participation->setExhibition(Exhibition::find(dbc, exhibition_id));
         participation->setReward(reward);
@@ -577,16 +578,18 @@ int option_add_new_participation(SQLHDBC dbc, int animal_id) {
         }
 
         Participation* participation = Participation::find(dbc, animal_id, exhibition_id);
-
+    
         if (participation != nullptr) {
             std::cout << "Selected animal has already taken part in the selected exhibition.\n";
             return -1;
         }
 
+
         std::cout << "Reward: ";
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         getline(std::cin, reward);
 
+        participation = new Participation();
         participation->setAnimal(Animal::find(dbc, animal_id));
         participation->setExhibition(Exhibition::find(dbc, exhibition_id));
         participation->setReward(reward);
@@ -610,6 +613,55 @@ int option_add_new_participation(SQLHDBC dbc, int animal_id) {
     } while (enter == 'Y' || enter == 'y');
 
     return 0;
+}
+
+int option_add_new_pedigree_info(SQLHDBC dbc) {
+    
+    int animal_id;
+
+    animal_id = select_animal(dbc);
+    if (animal_id == -1) {
+        return -1;
+    } 
+
+    Animal* animal = Animal::find(dbc, animal_id);
+
+    std::cout << "Pedigree:\n";
+
+    printFamilyTree(animal);
+
+    int mother_id = select_animal(dbc, "female", false);
+    if (mother_id == -1) return -1;
+    int father_id = select_animal(dbc, "male", false);
+    if (father_id == -1) return -1;
+
+    animal->setMother(Animal::find(dbc, mother_id));
+    animal->setFather(Animal::find(dbc, father_id));
+
+    std::cout << "Pedigree:\n";
+
+    printFamilyTree(animal);
+
+    return 0;
+}
+
+void printFamilyTree(const Animal* animal, const std::string& prefix) {
+    if (animal == nullptr) {
+        return;
+    }
+
+    std::cout << prefix << "+-- " << animal->getName() << std::endl;
+
+    std::string newPrefix = prefix;
+    if (prefix.empty()) {
+        newPrefix = "    ";
+    }
+    else {
+        newPrefix += "|   ";
+    }
+
+    printFamilyTree(animal->getMother(), newPrefix);
+    printFamilyTree(animal->getFather(), newPrefix);
 }
 
 int option_update_animal(SQLHDBC dbc) {
@@ -1496,7 +1548,6 @@ int select_animal(SQLHDBC dbc, bool addition) {
 
 int select_animal(SQLHDBC dbc, std::string gender, bool addition) {
     int animal_id;
-    std::cout << "Select animal:\n";
     std::map<int, int> record_map = Animal::get_values(dbc, "gender", gender);
     Animal::display(dbc, record_map);
     if (addition) std::cout << "or\n" << (int)(record_map.size())+1 << ". Add new animal\n";

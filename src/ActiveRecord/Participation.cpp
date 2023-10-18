@@ -243,10 +243,11 @@ Participation* Participation::find(SQLHDBC dbc, int animal_id, int exhibition_id
         throw std::runtime_error("Failed to bind column for reward");
     }
 
-    Participation* participation = new Participation();
+    Participation* participation;
 
     res = SQLFetch(stmt);
     if (res == SQL_SUCCESS) {
+        participation = new Participation();
         participation->setReward(std::string(reward_buf, reward_len));
         participation->setAnimal(Animal::find(dbc, animal_id));
         participation->setExhibition(Exhibition::find(dbc, exhibition_id));

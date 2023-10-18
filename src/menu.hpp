@@ -29,6 +29,7 @@ int option_add_new_participation(SQLHDBC dbc);
 int option_add_new_participation(SQLHDBC dbc, int animal_id);
 
 int option_add_new_pedigree_info(SQLHDBC dbc);
+void printFamilyTree(const Animal* animal, const std::string& prefix = "");
 
 int option_update_animal(SQLHDBC dbc);
 int option_update_breed(SQLHDBC dbc);
