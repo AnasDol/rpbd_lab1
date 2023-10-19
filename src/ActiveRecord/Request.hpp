@@ -49,6 +49,11 @@ public:
     void setMonth(int month) { this->month = month; }
     void setYear(int year) { this->year = year; }
 
+    ~Request() {
+        delete client;
+        delete breed;
+    }
+
 private:
 
     static inline const std::string table_name {"requests"};

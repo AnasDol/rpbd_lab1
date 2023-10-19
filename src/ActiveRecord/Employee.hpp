@@ -47,6 +47,10 @@ public:
     void setPosition(Position* newPosition) { position = newPosition; }
     void setSalary(int s) { salary = s; }
 
+    ~Employee() {
+        delete position;
+    }
+
 private:
 
     static inline const std::string table_name {"employees"};

@@ -63,6 +63,14 @@ public:
     void setMother(Animal* m) { mother = m; }
     void setFather(Animal* f) { father = f; }
 
+    ~Animal() {
+        delete breed;
+        delete client;
+        delete vet;
+        delete mother;
+        delete father;
+    }
+
 private:
 
     static inline const std::string table_name {"animals"};

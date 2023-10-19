@@ -40,6 +40,11 @@ public:
     void setExhibition(Exhibition* ex) { exhibition = ex; }
     void setReward(const std::string& r) { reward = r; }
 
+    ~Participation() {
+        delete animal;
+        delete exhibition;
+    }
+
 private:
 
     static inline const std::string table_name {"participations"};

@@ -405,6 +405,7 @@ int option_add_new_vet(SQLHDBC dbc) {
         return -1;
     }
 
+    delete pos;
     return new_record.getId();
 
 }
@@ -531,6 +532,7 @@ int option_add_new_participation(SQLHDBC dbc) {
 
         if (participation != nullptr) {
             std::cout << "Selected animal has already taken part in the selected exhibition.\n";
+            delete participation;
             return -1;
         }
 
@@ -550,6 +552,8 @@ int option_add_new_participation(SQLHDBC dbc) {
             std::cout << "Failed to add new entry to participations.\n";
             return -1;
         }
+
+        delete participation;
 
         std::cout << "Do you want to add another exhibition? (y/n)\n> ";
         std::cin >> enter;
@@ -654,6 +658,8 @@ int option_add_new_pedigree_info(SQLHDBC dbc) {
 
     printFamilyTree(animal);
 
+    delete animal;
+
     return 0;
 }
 
@@ -671,6 +677,8 @@ int option_show_pedigree_info(SQLHDBC dbc) {
     std::cout << "Pedigree:\n";
 
     printFamilyTree(animal);
+
+    delete animal;
 
     return 0;
 }
@@ -823,7 +831,8 @@ int option_update_breed(SQLHDBC dbc) {
         return -1;
     }
 
-    return record->getId();
+    delete record;
+    return 0;
 
 }
 
@@ -893,7 +902,8 @@ int option_update_client(SQLHDBC dbc) {
         return -1;
     }
 
-    return record->getId();
+    delete record;
+    return 0;
 
 }
 
@@ -983,7 +993,8 @@ int option_update_employee(SQLHDBC dbc) {
         return -1;
     }
 
-    return record->getId();
+    delete record;
+    return 0;
 
 }
 
@@ -1012,7 +1023,8 @@ int option_update_position(SQLHDBC dbc) {
         return -1;
     }
 
-    return record->getId();
+    delete record;
+    return 0;
 
 }
 
@@ -1092,7 +1104,8 @@ int option_update_request(SQLHDBC dbc) {
         return -1;
     }
 
-    return record->getId();
+    delete record;
+    return 0;
 
 }
 
@@ -1159,7 +1172,8 @@ int option_update_exhibition(SQLHDBC dbc) {
         return -1;
     }
 
-    return record->getId();
+    delete record;
+    return 0;
 
 }
 
@@ -1215,6 +1229,8 @@ int option_update_participation(SQLHDBC dbc) {
         return -1;
     }
 
+    delete record;
+    delete ex;
     return 0;
 
 }
@@ -1234,6 +1250,8 @@ int option_remove_animal(SQLHDBC dbc) {
     } catch (std::runtime_error const& e) {
         std::cout << "Failed to delete entry.\nError occured: " << e.what() << "\n";
     }
+
+    delete animal;
 
     return 0;
 }
@@ -1271,6 +1289,8 @@ int option_remove_breed(SQLHDBC dbc) {
         std::cout << "Failed to delete entry.\nError occured: " << e.what() << "\n";
     }
 
+    delete breed;
+
     return 0;
 }
 
@@ -1307,6 +1327,8 @@ int option_remove_client(SQLHDBC dbc) {
         std::cout << "Failed to delete entry.\nError occured: " << e.what() << "\n";
     }
 
+    delete client;
+
     return 0;
 }
 
@@ -1342,6 +1364,8 @@ int option_remove_employee(SQLHDBC dbc) {
         std::cout << "Failed to delete entry.\nError occured: " << e.what() << "\n";
     }
 
+    delete employee;
+
     return 0;
 }
 
@@ -1376,7 +1400,7 @@ int option_remove_position(SQLHDBC dbc) {
     } catch (std::runtime_error const& e) {
         std::cout << "Failed to delete entry.\nError occured: " << e.what() << "\n";
     }
-
+    delete position;
     return 0;
 }
 
@@ -1395,7 +1419,7 @@ int option_remove_request(SQLHDBC dbc) {
     } catch (std::runtime_error const& e) {
         std::cout << "Failed to delete entry.\nError occured: " << e.what() << "\n";
     }
-
+    delete request;
     return 0;
 }
 
@@ -1414,7 +1438,7 @@ int option_remove_exhibition(SQLHDBC dbc) {
     } catch (std::runtime_error const& e) {
         std::cout << "Failed to delete entry.\nError occured: " << e.what() << "\n";
     }
-
+    delete exhibition;
     return 0;
 }
 
@@ -1463,7 +1487,8 @@ int option_remove_participation(SQLHDBC dbc) {
     } catch (std::runtime_error const& e) {
         std::cout << "Failed to delete entry.\nError occured: " << e.what() << "\n";
     }
-
+    delete record;
+    delete ex;
     return 0;
 }
 
@@ -1856,6 +1881,7 @@ int select_vet(SQLHDBC dbc, bool addition) {
         std::cout << "Wrong input.\n";
         return -1;
     }
+    delete pos;
     return vet_id;
 }
 
