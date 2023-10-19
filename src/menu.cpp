@@ -630,13 +630,25 @@ int option_add_new_pedigree_info(SQLHDBC dbc) {
 
     printFamilyTree(animal);
 
+    std::cout << "Select mother:\n";
     int mother_id = select_animal(dbc, "female", false);
     if (mother_id == -1) return -1;
+    if (mother_id == animal_id) {
+        std::cout << "Animal cannot be its own parent.\n";
+        return -1;
+    }
+
+    std::cout << "Select father:\n";
     int father_id = select_animal(dbc, "male", false);
     if (father_id == -1) return -1;
+    if (father_id == animal_id) {
+        std::cout << "Animal cannot be its own parent.\n";
+        return -1;
+    }
 
     animal->setMother(Animal::find(dbc, mother_id));
     animal->setFather(Animal::find(dbc, father_id));
+    animal->update(dbc);
 
     std::cout << "Pedigree:\n";
 
@@ -644,6 +656,25 @@ int option_add_new_pedigree_info(SQLHDBC dbc) {
 
     return 0;
 }
+
+int option_show_pedigree_info(SQLHDBC dbc) { 
+    
+    int animal_id;
+
+    animal_id = select_animal(dbc);
+    if (animal_id == -1) {
+        return -1;
+    } 
+
+    Animal* animal = Animal::find(dbc, animal_id);
+
+    std::cout << "Pedigree:\n";
+
+    printFamilyTree(animal);
+
+    return 0;
+}
+
 
 void printFamilyTree(const Animal* animal, const std::string& prefix) {
     if (animal == nullptr) {
@@ -1504,7 +1535,7 @@ int option_show_data(SQLHDBC dbc) {
     }
         break;
     case 9:
-        //option_show_pedigree_info(dbc);
+        option_show_pedigree_info(dbc);
         break;
     default:
         break;
