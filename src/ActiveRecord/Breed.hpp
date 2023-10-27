@@ -1,14 +1,7 @@
 #ifndef BREED_HPP
 #define BREED_HPP
 
-#include "../connection.hpp"
-#include <iomanip>
-#include <iostream>
-#include <map>
-#include <sql.h>
-#include <sqlext.h>
-#include <string>
-#include <windows.h>
+#include "../defaults.hpp"
 
 class Breed {
 

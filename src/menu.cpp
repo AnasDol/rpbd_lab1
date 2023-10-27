@@ -236,8 +236,9 @@ int option_add_new_breed(SQLHDBC dbc) {
 
     std::string name;
 
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     std::cout << "Breed name: ";
-    std::cin >> name;
+    getline(std::cin, name);
 
     Breed new_record;
     new_record.setName(name);
@@ -683,6 +684,39 @@ int option_show_pedigree_info(SQLHDBC dbc) {
     return 0;
 }
 
+int option_show_animals_by_request(SQLHDBC dbc) {
+
+    int request_id = select_request(dbc);
+    if (request_id == -1) {
+        return -1;
+    }
+
+    Request* request = Request::find(dbc, request_id);
+
+    std::map<int, int> breed_animals = Animal::get_values(dbc, "breed_id", std::to_string(request->getBreed()->getId()));
+    Animal* animal;
+    for (const auto& [order, id] : breed_animals) {
+        animal = Animal::find(dbc, id);
+        if (request->getGender() != "" && animal->getGender() != request->getGender()) {
+            breed_animals.erase(order);
+        }
+    }
+
+    std::map<int,int> animals;
+    int i = 1;
+    for (const auto& [order, id] : breed_animals) {
+        animal = Animal::find(dbc, id);
+        animals.insert({i, animal->getId()});
+        i++;
+    }
+
+    Animal::display(dbc, animals);
+
+    delete animal;
+    delete request;
+    return 0;
+
+}
 
 void printFamilyTree(const Animal* animal, const std::string& prefix) {
     if (animal == nullptr) {
@@ -1504,11 +1538,12 @@ int option_show_data(SQLHDBC dbc) {
     std::cout << "7. Show REQUESTS\n";
     std::cout << "8. Show PARTICIPATIONS of selected animal\n";
     std::cout << "9. Show PEDIGREE of selected animal\n";
+    std::cout << "10. Show animals for selected request\n";
     std::cout << "> ";
 
     int option;
     std::cin >> option;
-    if (!std::cin.good() || option < 1 || option > 9) {
+    if (!std::cin.good() || option < 1 || option > 10) {
         std::cout << "Wrong input.\n";
         return -1;
     }
@@ -1561,6 +1596,9 @@ int option_show_data(SQLHDBC dbc) {
         break;
     case 9:
         option_show_pedigree_info(dbc);
+        break;
+    case 10:
+        option_show_animals_by_request(dbc);
         break;
     default:
         break;

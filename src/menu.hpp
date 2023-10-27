@@ -14,6 +14,8 @@
 #include "ActiveRecord/Exhibition.hpp"
 #include "ActiveRecord/Participation.hpp"
 
+#include "defaults.hpp"
+
 void start(SQLHDBC dbc);
 void proceed(SQLHDBC dbc, int option);
 
@@ -55,6 +57,7 @@ int option_remove_pedigree_info(SQLHDBC dbc);
 
 int option_show_data(SQLHDBC dbc);
 int option_show_pedigree_info(SQLHDBC dbc);
+int option_show_animals_by_request(SQLHDBC dbc);
 
 int select_animal(SQLHDBC dbc, bool addition = true);
 int select_animal(SQLHDBC dbc, std::string gender, bool addition = true);

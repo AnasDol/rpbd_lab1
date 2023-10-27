@@ -1,12 +1,7 @@
 #ifndef CONNECTION_HPP
 #define CONNECTION_HPP
 
-#include <windows.h>
-#include <sql.h>
-#include <sqlext.h>
-#include <iostream>
-#include <iomanip>
-#include <list>
+#include "defaults.hpp"
 
 struct pair {
     int first;

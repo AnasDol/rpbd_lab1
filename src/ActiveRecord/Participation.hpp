@@ -1,14 +1,7 @@
 #ifndef PARTICIPATION_HPP
 #define PARTICIPATION_HPP
 
-#include <string>
-#include <windows.h>
-#include <sql.h>
-#include <sqlext.h>
-#include <iostream>
-#include <iomanip>
-#include <map>
-#include "../connection.hpp"
+#include "../defaults.hpp"
 
 #include "Animal.hpp"
 #include "Exhibition.hpp"

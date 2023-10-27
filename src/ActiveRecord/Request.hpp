@@ -1,14 +1,7 @@
 #ifndef REQUEST_HPP
 #define REQUEST_HPP
 
-#include <string>
-#include <windows.h>
-#include <sql.h>
-#include <sqlext.h>
-#include <iostream>
-#include <iomanip>
-#include <map>
-#include "../connection.hpp"
+#include "../defaults.hpp"
 
 #include "Client.hpp"
 #include "Breed.hpp"

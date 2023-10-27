@@ -1,14 +1,7 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 
-#include <string>
-#include <windows.h>
-#include <sql.h>
-#include <sqlext.h>
-#include <iostream>
-#include <iomanip>
-#include <map>
-#include "../connection.hpp"
+#include "../defaults.hpp"
 
 class Client {
 

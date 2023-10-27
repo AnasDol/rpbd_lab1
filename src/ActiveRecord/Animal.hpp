@@ -1,15 +1,7 @@
 #ifndef ANIMAL_HPP
 #define ANIMAL_HPP
 
-#include <string>
-#include <windows.h>
-#include <sql.h>
-#include <sqlext.h>
-#include <iostream>
-#include <iomanip>
-#include <map>
-#include <memory>
-#include "../connection.hpp"
+#include "../defaults.hpp"
 
 #include "Breed.hpp"
 #include "Client.hpp"

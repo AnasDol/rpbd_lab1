@@ -1,15 +1,7 @@
 #ifndef EMPLOYEE_HPP
 #define EMPLOYEE_HPP
 
-#include <string>
-#include <windows.h>
-#include <sql.h>
-#include <sqlext.h>
-#include <iostream>
-#include <iomanip>
-#include <map>
-#include <memory>
-#include "../connection.hpp"
+#include "../defaults.hpp"
 
 #include "Position.hpp"
 

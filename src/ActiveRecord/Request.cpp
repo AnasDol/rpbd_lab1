@@ -348,45 +348,16 @@ void Request::display(SQLHDBC dbc, std::map<int, int> record_map) {
 
     for (const auto& [order, id] : record_map) {
 
-        SQLHSTMT hstmt;
-        SQLRETURN retcode;
+        Request* current = Request::find(dbc, id);
 
-        retcode = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &hstmt);
-
-        if (retcode != SQL_SUCCESS && retcode != SQL_SUCCESS_WITH_INFO) {
-            std::cout << "Failed to allocate handle." << std::endl;
-            return;
-        }
-
-        std::string query = "SELECT * FROM " + table_name + " WHERE id = " + std::to_string(id);
-
-        retcode = SQLExecDirect(hstmt, (SQLCHAR*)(query.c_str()), SQL_NTS);
-
-        if (retcode != SQL_SUCCESS && retcode != SQL_SUCCESS_WITH_INFO) {
-            std::cout << "Failed to execute query." << std::endl;
-            continue;
-        }
-
-        while (SQLFetch(hstmt) == SQL_SUCCESS) {
-            SQLINTEGER id, breed_id, client_id;
-            SQLCHAR gender[10], request_date[64];
-
-            SQLGetData(hstmt, 1, SQL_C_LONG, &id, 0, nullptr);
-            SQLGetData(hstmt, 2, SQL_C_LONG, &client_id, 0, nullptr);
-            SQLGetData(hstmt, 3, SQL_C_LONG, &breed_id, 0, nullptr);
-            SQLGetData(hstmt, 4, SQL_C_CHAR, &gender, sizeof(gender), nullptr);
-            SQLGetData(hstmt, 5, SQL_C_CHAR, &request_date, sizeof(request_date), nullptr);
-
-            std::cout << order << "."
-                << std::setw(10) << id
-                << std::setw(20) << client_id
-                << std::setw(20) << breed_id
-                << std::setw(20) << gender
-                << std::setw(20) << request_date
-                << std::endl;
-        }   
-
-        SQLFreeHandle(SQL_HANDLE_STMT, hstmt);       
+        std::cout << order << "."
+            << std::setw(10) << current->id
+            << std::setw(20) << ((current->getClient() != nullptr) ? current->getClient()->getLastName() + " " + current->getClient()->getFirstName() : "")
+            << std::setw(20) << ((current->getBreed() != nullptr) ? current->getBreed()->getName() : "")
+            << std::setw(20) << current->getGender()
+            << std::setw(20) << current->getDate()
+            << std::endl; 
+     
     }
     
 }
