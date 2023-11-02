@@ -643,6 +643,9 @@ int option_add_new_pedigree_info(SQLHDBC dbc) {
         return -1;
     }
 
+    animal->setMother(Animal::find(dbc, mother_id));
+    animal->update(dbc);
+
     std::cout << "Select father:\n";
     int father_id = select_animal(dbc, "male", false);
     if (father_id == -1) return -1;
@@ -651,7 +654,6 @@ int option_add_new_pedigree_info(SQLHDBC dbc) {
         return -1;
     }
 
-    animal->setMother(Animal::find(dbc, mother_id));
     animal->setFather(Animal::find(dbc, father_id));
     animal->update(dbc);
 
@@ -1253,6 +1255,9 @@ int option_update_participation(SQLHDBC dbc) {
     getline(std::cin, reward);
 
     Participation* record = Participation::find(dbc, animal_id, exhibition_id);
+
+    if (record->getAnimal()== nullptr || record->getExhibition()== nullptr) return -1;
+    
     record->setReward(reward);
 
     try {

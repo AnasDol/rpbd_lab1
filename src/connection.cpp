@@ -10,8 +10,6 @@ void show_error(SQLHANDLE handle, SQLSMALLINT handle_type) {
     }
 }
 
-
-
 int connect_to_db(std::string dsn, std::string uid, std::string pwd, SQLHENV *env, SQLHDBC *dbc) {
     SQLRETURN ret;
 
@@ -47,69 +45,6 @@ int connect_to_db(std::string dsn, std::string uid, std::string pwd, SQLHENV *en
     return 0;
 }
 
-
-bool already_exists(SQLHDBC dbc, const std::string& table_name) {
-    SQLHSTMT stmt;
-    SQLRETURN ret;
-
-    ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
-    if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
-        show_error(dbc, SQL_HANDLE_DBC);
-        return false;
-    }
-
-    std::string query = "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = '" + table_name + "');";
-    ret = SQLExecDirect(stmt, (SQLCHAR*)query.c_str(), SQL_NTS);
-    if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
-        show_error(stmt, SQL_HANDLE_STMT);
-        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-        return false;
-    }
-
-    SQLINTEGER exists;
-    ret = SQLFetch(stmt);
-    if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
-        show_error(stmt, SQL_HANDLE_STMT);
-        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-        return false;
-    }
-
-    ret = SQLGetData(stmt, 1, SQL_INTEGER, &exists, 0, NULL);
-    if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
-        show_error(stmt, SQL_HANDLE_STMT);
-        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-        return false;
-    }
-
-    SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-    return (exists == 1);
-}
-
-int create_table_if_not_exists(SQLHDBC dbc, std::string table_name, std::string table_args) {
-
-    SQLHSTMT stmt;
-    SQLRETURN ret;
-
-    ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
-    if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
-        show_error(dbc, SQL_HANDLE_DBC);
-        return 1;
-    }
-
-    std::string create_query = "CREATE TABLE IF NOT EXISTS " + table_name + " (" + table_args + ")";
-
-    ret = SQLExecDirect(stmt, (SQLCHAR*)create_query.c_str(), SQL_NTS);
-    if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
-        show_error(stmt, SQL_HANDLE_STMT);
-        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-        return 1;
-    }
-
-    SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-
-    return 0;
-}
-
 int init_tables(SQLHDBC dbc) {
 
     SQLHSTMT stmt;
@@ -121,7 +56,7 @@ int init_tables(SQLHDBC dbc) {
         return 1;
     }
 
-    std::string create_query = "DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'gen') THEN CREATE TYPE gen AS ENUM ('male', 'female'); END IF; END$$; create table if not exists breeds(id serial PRIMARY KEY, name text UNIQUE); create table if not exists clients(id serial PRIMARY KEY, last_name text NOT NULL, first_name text NOT NULL, patronymic text, address text); create table if not exists positions(id serial PRIMARY KEY, name text UNIQUE NOT NULL); create table if not exists employees(id serial PRIMARY KEY, last_name text NOT NULL, first_name text NOT NULL, patronymic text, address text, position_id integer REFERENCES positions(id) ON DELETE CASCADE, salary money); create table if not exists animals(id serial PRIMARY KEY, name text, age integer CHECK (age >= 0), gender gen, breed_id integer REFERENCES breeds(id) ON DELETE CASCADE, appearance text, client_id integer REFERENCES clients(id) ON DELETE CASCADE, vet_id integer REFERENCES employees(id) ON DELETE CASCADE, mother_id integer REFERENCES animals(id) ON DELETE CASCADE, father_id integer REFERENCES animals(id) ON DELETE CASCADE); create table if not exists pedigree(parent_id integer REFERENCES animals(id) ON DELETE CASCADE, child_id integer REFERENCES animals(id) ON DELETE CASCADE); create table if not exists exhibitions(id serial PRIMARY KEY, name text, address text, exhibition_date date); create table if not exists participations(animal_id integer NOT NULL REFERENCES animals(id) ON DELETE CASCADE, exhibition_id integer NOT NULL REFERENCES exhibitions(id) ON DELETE CASCADE, reward text, PRIMARY KEY (animal_id, exhibition_id)); create table if not exists requests(id serial PRIMARY KEY, client_id integer REFERENCES clients(id) ON DELETE CASCADE, breed_id integer REFERENCES breeds(id) ON DELETE CASCADE, gender gen, request_date date);";
+    std::string create_query = "DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'gen') THEN CREATE TYPE gen AS ENUM ('male', 'female'); END IF; END$$; create table if not exists breeds(id serial PRIMARY KEY, name text UNIQUE); create table if not exists clients(id serial PRIMARY KEY, last_name text NOT NULL, first_name text NOT NULL, patronymic text, address text); create table if not exists positions(id serial PRIMARY KEY, name text UNIQUE NOT NULL); create table if not exists employees(id serial PRIMARY KEY, last_name text NOT NULL, first_name text NOT NULL, patronymic text, address text, position_id integer REFERENCES positions(id) ON DELETE CASCADE, salary money); create table if not exists animals(id serial PRIMARY KEY, name text, age integer CHECK (age >= 0), gender gen, breed_id integer REFERENCES breeds(id) ON DELETE CASCADE, appearance text, client_id integer REFERENCES clients(id) ON DELETE CASCADE, vet_id integer REFERENCES employees(id) ON DELETE CASCADE, mother_id integer REFERENCES animals(id) ON DELETE CASCADE, father_id integer REFERENCES animals(id) ON DELETE CASCADE); create table if not exists exhibitions(id serial PRIMARY KEY, name text, address text, exhibition_date date); create table if not exists participations(animal_id integer NOT NULL REFERENCES animals(id) ON DELETE CASCADE, exhibition_id integer NOT NULL REFERENCES exhibitions(id) ON DELETE CASCADE, reward text, PRIMARY KEY (animal_id, exhibition_id)); create table if not exists requests(id serial PRIMARY KEY, client_id integer REFERENCES clients(id) ON DELETE CASCADE, breed_id integer REFERENCES breeds(id) ON DELETE CASCADE, gender gen, request_date date);";
 
     ret = SQLExecDirect(stmt, (SQLCHAR*)create_query.c_str(), SQL_NTS);
     if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {

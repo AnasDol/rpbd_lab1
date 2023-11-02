@@ -20,15 +20,15 @@ void Participation::insert(SQLHDBC dbc) {
 
     int animal_id, exhibition_id;
 
-    if (reward == "") cbReward = SQL_NULL_DATA;
+    //if (reward == "") cbReward = SQL_NULL_DATA;
 
     if (animal == nullptr) {
-        animal_id = -1;
+        //animal_id = -1;
         cbAnimal_id = SQL_NULL_DATA;
     } else animal_id = animal->getId();
 
     if (exhibition == nullptr) {
-        exhibition_id = -1;
+        //exhibition_id = -1;
         cbExhibition_id = SQL_NULL_DATA;
     } else exhibition_id = exhibition->getId();
 
@@ -155,17 +155,11 @@ void Participation::remove(SQLHDBC dbc) {
 
     SQLLEN cbAnimal_id = 0, cbExhibition_id = 0;
 
-    int animal_id, exhibition_id;
+    int animal_id = -1, exhibition_id = -1;
 
-    if (animal == nullptr) {
-        animal_id = -1;
-        cbAnimal_id = SQL_NULL_DATA;
-    } else animal_id = animal->getId();
+    if (animal != nullptr) animal_id = animal->getId();
 
-    if (exhibition == nullptr) {
-        exhibition_id = -1;
-        cbExhibition_id = SQL_NULL_DATA;
-    } else exhibition_id = exhibition->getId();
+    if (exhibition != nullptr) exhibition_id = exhibition->getId();
 
     res = SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &animal_id, 0, &cbAnimal_id);
     if (res != SQL_SUCCESS) {
@@ -243,11 +237,10 @@ Participation* Participation::find(SQLHDBC dbc, int animal_id, int exhibition_id
         throw std::runtime_error("Failed to bind column for reward");
     }
 
-    Participation* participation;
+    Participation* participation = new Participation();
 
     res = SQLFetch(stmt);
     if (res == SQL_SUCCESS) {
-        participation = new Participation();
         participation->setReward(std::string(reward_buf, reward_len));
         participation->setAnimal(Animal::find(dbc, animal_id));
         participation->setExhibition(Exhibition::find(dbc, exhibition_id));

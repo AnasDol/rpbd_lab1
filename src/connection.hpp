@@ -16,11 +16,6 @@ void show_error(SQLHANDLE handle, SQLSMALLINT handle_type);
 
 int connect_to_db(std::string dsn, std::string uid, std::string pwd, SQLHENV *env, SQLHDBC *dbc);
 
-
-bool already_exists(SQLHDBC dbc, const std::string& table_name);
-
-int create_table_if_not_exists(SQLHDBC dbc, std::string table_name, std::string table_args);
-
 int init_tables(SQLHDBC dbc);
 
 
